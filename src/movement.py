@@ -7,6 +7,10 @@ import numpy as np
 class AbstractDirection(ABC):
     vertical = None
     epsilon = 0.1
+    dif_multiplier = 0.2
+
+    def calc_dif(self, variable):
+        return (round(variable / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - variable
 
     def _isVertical(self, direction):
         return direction in [Direction.UP, Direction.DOWN]
@@ -33,22 +37,22 @@ class VerticalDirection(AbstractDirection):
     vertical = True
 
     def move(self, sprite, direction, dt):
-        dif = (round(sprite.x / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - sprite.x
+        dif = self.calc_dif(sprite.x)
         if dif > self.epsilon:
-            sprite.x += settings.MOVEMENT_SPEED * dt * abs(dif / 5)
+            sprite.x += settings.MOVEMENT_SPEED * dt * abs(dif * self.dif_multiplier)
         elif dif < self.epsilon:
-            sprite.x -= settings.MOVEMENT_SPEED * dt * abs(dif / 5)
+            sprite.x -= settings.MOVEMENT_SPEED * dt * abs(dif * self.dif_multiplier)
 
 
 class HorizontalDirection(AbstractDirection):
     vertical = False
 
     def move(self, sprite, direction, dt):
-        dif = (round(sprite.y / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - sprite.y
+        dif = self.calc_dif(sprite.y)
         if dif > self.epsilon:
-            sprite.y += settings.MOVEMENT_SPEED * dt * abs(dif / 5)
+            sprite.y += settings.MOVEMENT_SPEED * dt * abs(dif * self.dif_multiplier)
         elif dif < self.epsilon:
-            sprite.y -= settings.MOVEMENT_SPEED * dt * abs(dif / 5)
+            sprite.y -= settings.MOVEMENT_SPEED * dt * abs(dif * self.dif_multiplier)
 
 
 class Stop(AbstractDirection):
