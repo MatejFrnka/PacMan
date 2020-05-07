@@ -3,6 +3,7 @@ from src.assetsmanager import Direction
 import src.assetsmanager as assets
 import src.globalsettings as settings
 import pyglet
+import src.movement as movement
 from abc import ABC
 
 
@@ -11,7 +12,7 @@ class Player(ABC):
         self.bit_map = bit_map
         self.sprite = pyglet.sprite.Sprite(sp_texture, x=settings.BLOCK_SIZE, y=settings.BLOCK_SIZE)
         self.sprite.scale = settings.BLOCK_SIZE / self.sprite.height
-        self.direction = Direction.STOP
+        self.direction = movement.getDirection(Direction.STOP)
 
     def update(self, dt):
         pass
@@ -100,28 +101,7 @@ class Human(Player):
     def update(self, dt):
         directions = self._availableDir()
         if self.nextDirection in directions:
-            self.direction = self.nextDirection
+            self.direction = movement.getDirection(self.nextDirection)
             self.nextDirection = None
-        epsilon = 0.1
-        dif = 0
-        if self.direction == Direction.LEFT or self.direction == Direction.RIGHT:
-            dif = (round(self.sprite.y / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - self.sprite.y
-            if dif > epsilon:
-                self.sprite.y += settings.MOVEMENT_SPEED * dt * abs(dif / 5)
-            elif dif < epsilon:
-                self.sprite.y -= settings.MOVEMENT_SPEED * dt * abs(dif / 5)
-        elif self.direction == Direction.UP or self.direction == Direction.DOWN:
-            dif = (round(self.sprite.x / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - self.sprite.x
-            if dif > epsilon:
-                self.sprite.x += settings.MOVEMENT_SPEED * dt * abs(dif / 5)
-            elif dif < epsilon:
-                self.sprite.x -= settings.MOVEMENT_SPEED * dt * abs(dif / 5)
-        d = 0.9 if abs(dif / 5) > 0.9 else abs(dif / 5)
-        if self.direction == Direction.DOWN and Direction.DOWN in directions:
-            self.sprite.y -= settings.MOVEMENT_SPEED * dt * abs(1 - d / 5)
-        elif self.direction == Direction.UP and Direction.UP in directions:
-            self.sprite.y += settings.MOVEMENT_SPEED * dt * abs(1 - d / 5)
-        if self.direction == Direction.LEFT and Direction.LEFT in directions:
-            self.sprite.x -= settings.MOVEMENT_SPEED * dt * abs(1 - d / 5)
-        if self.direction == Direction.RIGHT and Direction.RIGHT in directions:
-            self.sprite.x += settings.MOVEMENT_SPEED * dt * abs(1 - d / 5)
+
+        self.direction.move(self.sprite, directions, dt)
