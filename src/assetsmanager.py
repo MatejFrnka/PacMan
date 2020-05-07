@@ -1,9 +1,18 @@
 import pyglet
 import numpy as np
 import src.globalsettings as settings
+from enum import Enum
 
 pacman = pyglet.image.load_animation('assets/pacman.gif')
 wall = pyglet.image.load('assets/wall.png')
+
+
+class Direction(Enum):
+    STOP = 0
+    UP = 1
+    DOWN = -1
+    LEFT = -2
+    RIGHT = 2
 
 
 def generateMap():
