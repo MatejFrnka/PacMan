@@ -8,6 +8,7 @@ class AbstractDirection(ABC):
     vertical = None
     epsilon = 0.1
     dif_multiplier = 0.2
+    angle = 0
 
     def calc_dif(self, variable):
         return (round(variable / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - variable
@@ -61,6 +62,8 @@ class Stop(AbstractDirection):
 
 
 class Up(VerticalDirection):
+    angle = 90
+
     def move(self, sprite, directions, dt):
         if Direction.UP in directions:
             sprite.y += settings.MOVEMENT_SPEED * dt
@@ -74,6 +77,8 @@ class Up(VerticalDirection):
 
 
 class Down(VerticalDirection):
+    angle = 270
+
     def move(self, sprite, directions, dt):
         if Direction.DOWN in directions:
             sprite.y -= settings.MOVEMENT_SPEED * dt
@@ -87,6 +92,8 @@ class Down(VerticalDirection):
 
 
 class Left(HorizontalDirection):
+    angle = 0
+
     def move(self, sprite, directions, dt):
         if Direction.LEFT in directions:
             sprite.x -= settings.MOVEMENT_SPEED * dt
@@ -100,6 +107,7 @@ class Left(HorizontalDirection):
 
 
 class Right(HorizontalDirection):
+    angle = 180
 
     def move(self, sprite, directions, dt):
         if Direction.RIGHT in directions:

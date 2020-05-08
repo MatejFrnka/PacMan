@@ -5,6 +5,7 @@ import src.globalsettings as settings
 import pyglet
 import src.movement as movement
 from abc import ABC
+import pyglet.image
 
 
 class Player(ABC):
@@ -23,19 +24,14 @@ class Player(ABC):
     def draw(self):
         self.sprite.draw()
 
-    def _availableDir(self, y=None, x=None):
-        if y is None or x is None:
-            y, x = self._getPosInMap(False)
-        ey, ex = self._getPosInMap(True)
-        result = []
-        epsilon = 0.1
-        ct_y = 0 if abs(y - ey) > epsilon else 1
-        ct_x = 0 if abs(x - ex) > epsilon else 1
+    def _availableDir(self):
+        y, x = self.getPosInMap(False)
+        ey, ex = self.getPosInMap(True)
 
         return self.direction.availableDir(y, x, ey, ex, self.bit_map)
 
     # returns position (y, x), if exact is True it returns float else integer
-    def _getPosInMap(self, exact=None):
+    def getPosInMap(self, exact=None):
         if exact is None:
             exact = False
         if exact:
@@ -75,6 +71,7 @@ class Human(Player):
         directions = self._availableDir()
         if self.nextDirection in directions:
             self.direction = movement.getDirection(self.nextDirection)
+            #self.sprite.rotation = self.direction.angle
             self.nextDirection = None
 
         self.direction.move(self.sprite, directions, dt)
