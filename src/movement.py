@@ -57,12 +57,19 @@ class HorizontalDirection(AbstractDirection):
 
 
 class Stop(AbstractDirection):
+    # y, x
+    direction = np.array([0, 0])
+    opposite = Direction.STOP
+
     def move(self, sprite, direction, distance):
         return
 
 
 class Up(VerticalDirection):
+    # y, x
+    direction = np.array([-1, 0])
     angle = 90
+    opposite = Direction.DOWN
 
     def move(self, sprite, directions, dt):
         if Direction.UP in directions:
@@ -77,7 +84,10 @@ class Up(VerticalDirection):
 
 
 class Down(VerticalDirection):
+    # y, x
+    direction = np.array([1, 0])
     angle = 270
+    opposite = Direction.UP
 
     def move(self, sprite, directions, dt):
         if Direction.DOWN in directions:
@@ -92,7 +102,10 @@ class Down(VerticalDirection):
 
 
 class Left(HorizontalDirection):
+    # y, x
+    direction = np.array([0, -1])
     angle = 0
+    opposite = Direction.RIGHT
 
     def move(self, sprite, directions, dt):
         if Direction.LEFT in directions:
@@ -107,7 +120,10 @@ class Left(HorizontalDirection):
 
 
 class Right(HorizontalDirection):
+    # y, x
+    direction = np.array([0, 1])
     angle = 180
+    opposite = Direction.LEFT
 
     def move(self, sprite, directions, dt):
         if Direction.RIGHT in directions:

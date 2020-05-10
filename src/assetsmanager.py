@@ -4,6 +4,7 @@ import src.globalsettings as settings
 from enum import Enum
 
 pacman = pyglet.image.load_animation('assets/pacman.gif')
+ghost_red = pyglet.image.load_animation('assets/ghost_tmp.gif')
 wall = pyglet.image.load('assets/wall.png')
 food_small = pyglet.image.load('assets/food_small.png')
 food_large = pyglet.image.load('assets/food_large.png')

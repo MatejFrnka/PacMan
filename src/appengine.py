@@ -9,9 +9,9 @@ from src.map import Map
 
 class AppEngine(pyglet.window.Window):
     def __init__(self):
-        super().__init__(19 * settings.BLOCK_SIZE, 19 * settings.BLOCK_SIZE, "PAC-MAN", resizable=False)
+        super().__init__(19 * settings.BLOCK_SIZE, 19 * settings.BLOCK_SIZE + settings.BLOCK_SIZE * 3, "PAC-MAN", resizable=False)
         bit_map = assets.generateMap()
-        self.map = Map(bit_map, pl.Human(bit_map))
+        self.map = Map(bit_map)
         self.event_loop = pyglet.app.EventLoop()
         pyglet.clock.schedule_interval(self.update, 1 / 120.0)
 
