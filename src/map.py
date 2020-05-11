@@ -1,7 +1,9 @@
+from threading import Timer
+
 import pyglet
 import src.assetsmanager as assets
 import src.globalsettings as settings
-import src.targeting as TargetBehaviour
+import src.targeting as targetbehaviour
 from src.player import Human, Ghost
 
 
@@ -34,36 +36,60 @@ class FoodBlock(Block):
             self.map.score += 10
 
 
+class SuperFoodBlock(Block):
+    def __init__(self, sprite, map, scareLen):
+        super().__init__(sprite)
+        self.map = map
+        self.scareLen = scareLen
+
+    def collect(self):
+        if not self.collected:
+            Block.collect(self)
+            self.map.score += 100
+            for player in self.map.ghosts:
+                player.scare(self.scareLen)
+
+
 class Map:
+    pacman_alive = True
     x_offset = 0
     y_offset = 25
 
     def __init__(self, bit_map):
         self.batch = pyglet.graphics.Batch()
         self.items = None
-        self.human = Human(bit_map, x_offset=self.x_offset, y_offset=self.y_offset)
+        self.human = Human(bit_map,
+                           x_offset=self.x_offset,
+                           y_offset=self.y_offset,
+                           x=bit_map.shape[1] // 2,
+                           y=bit_map.shape[0] // 2 - 2)
         blinky = Ghost(bit_map, assets.ghost_blinky,
                        self.human,
-                       behaviour=TargetBehaviour.BlinkyBehaviour(bit_map=bit_map, pacman=self.human),
+                       behaviour=targetbehaviour.BlinkyBehaviour(bit_map=bit_map, pacman=self.human),
                        x_offset=self.x_offset,
                        y_offset=self.y_offset)
+        Timer(1, self.release, [blinky]).start()
         pinky = Ghost(bit_map, assets.ghost_pinky,
                       self.human,
-                      behaviour=TargetBehaviour.PinkyBehaviour(pacman=self.human),
+                      behaviour=targetbehaviour.PinkyBehaviour(pacman=self.human),
                       x_offset=self.x_offset,
                       y_offset=self.y_offset)
+        Timer(3, self.release, [pinky]).start()
         inky = Ghost(bit_map, assets.ghost_inky,
                      self.human,
-                     behaviour=TargetBehaviour.InkyBehaviour(bit_map=bit_map, pacman=self.human, blinky=blinky),
+                     behaviour=targetbehaviour.InkyBehaviour(bit_map=bit_map, pacman=self.human, blinky=blinky),
                      x_offset=self.x_offset,
                      y_offset=self.y_offset)
+        Timer(4, self.release, [inky]).start()
         clyde = Ghost(bit_map, assets.ghost_clyde,
                       self.human,
-                      behaviour=TargetBehaviour.ClydeBehaviour(pacman=self.human, bit_map=bit_map),
+                      behaviour=None,
                       x_offset=self.x_offset,
                       y_offset=self.y_offset)
+        Timer(10, self.release, [clyde]).start()
+        clyde.targetBehaviour = targetbehaviour.ClydeBehaviour(pacman=self.human, bit_map=bit_map, clyde=clyde)
 
-        self.players = [blinky, pinky, inky, clyde]
+        self.ghosts = [clyde, inky, pinky, blinky]
         self.score = 0
         self.leftToCollect = 0
         self.createMap(bit_map)
@@ -72,22 +98,31 @@ class Map:
                                             x=((bit_map.shape[0] + 1) * settings.BLOCK_SIZE + self.x_offset) / 2,
                                             y=(bit_map.shape[1] * settings.BLOCK_SIZE) + self.y_offset,
                                             anchor_x='center', anchor_y='bottom')
+        self.setScatter(True)
+        Timer(9, self.setScatter, [False]).start()
 
     def update(self, dt):
-        # TODO: REMOVE ONLY FOR DEBUGGING
-        dt = 0.016
-        # move human
+        if self.pacman_alive:
+            # move human
+            self.human.update(dt)
+            # move ai
+            [player.update(dt) for player in self.ghosts]
 
-        self.human.update(dt)
-        # move ai
-        [player.update(dt) for player in self.players]
+            # check collisions with food and ai
+            y, x = self.human.getPosInMap()
+            if self.items[y][x].collides(y, x):
+                self.items[y][x].collect()
+            # check if all food is collected
+            if self.leftToCollect == 0:
+                ...  # win
+            for player in self.ghosts:
+                if player.collides(self.human):
+                    if player.scared:
+                        player.die()
+                    elif not player.scared and not player.dead:
+                        self.pacman_alive = False
+                        self.human.die()
 
-        # check collisions with food and ai
-        y, x = self.human.getPosInMap()
-        if self.items[y][x].collides(y, x):
-            self.items[y][x].collect()
-        if self.leftToCollect == 0:
-            ...
         # update score lable
         self.scoreLabel.text = 'Score: ' + str(self.score)
 
@@ -97,13 +132,13 @@ class Map:
         # draw human
         self.human.draw()
         # draw ai
-        [player.draw() for player in self.players]
+        [player.draw() for player in self.ghosts]
         # draw score
         self.scoreLabel.draw()
 
     def keypress(self, symbol):
         self.human.keypress(symbol)
-        [player.keypress(symbol) for player in self.players]
+        [player.keypress(symbol) for player in self.ghosts]
 
     def createMap(self, bit_map):
 
@@ -128,7 +163,7 @@ class Map:
                 # SUPER FOOD
                 elif bit_map[y][x] == 2:
                     sprite = make_sprite(x, y, assets.food_large)
-                    block = Block(sprite)
+                    block = SuperFoodBlock(sprite, self, 5)
                 # FOOD
                 elif bit_map[y][x] == 9:
                     sprite = make_sprite(x, y, assets.food_small)
@@ -139,3 +174,10 @@ class Map:
 
                 items_row.append(block)
             self.items.append(items_row)
+
+    def release(self, ghost):
+        ghost.locked = False
+
+    def setScatter(self, value):
+        for ghost in self.ghosts:
+            ghost.targetBehaviour.scatterBehaviour = value

@@ -1,4 +1,5 @@
 import numpy as np
+import src.player as player
 
 
 class TargetBehaviour:
@@ -7,7 +8,7 @@ class TargetBehaviour:
         self.def_cord = def_cord
         self.pacman = pacman
 
-    scatterBehaviour = True
+    scatterBehaviour = False
 
     def scatter(self):
         return self.def_cord
@@ -60,9 +61,16 @@ class InkyBehaviour(TargetBehaviour):
 
 
 class ClydeBehaviour(TargetBehaviour):
-    def __init__(self, bit_map, pacman):
+    def __init__(self, bit_map, pacman, clyde):
+        self.clyde = clyde
         def_cord = np.array([bit_map.shape[0] + 1, -1])
         super().__init__(def_cord, pacman)
 
     def hunt(self):
+        pacman_pos = np.array(self.pacman.getPosInMap())
+        clyde_pos = np.array(self.clyde.getPosInMap())
+        distance = player.distance(pacman_pos, clyde_pos)
+
+        if distance < 4:
+            return TargetBehaviour.scatter(self)
         return self.pacman.getPosInMap()

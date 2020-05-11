@@ -3,17 +3,18 @@ import numpy as np
 import src.globalsettings as settings
 from enum import Enum
 
-pacman = pyglet.image.load_animation('assets/pacman.gif')
-ghost_blinky = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/blinky.png'), 1, 8, column_padding=4)
-ghost_pinky = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/pinky.png'), 1, 8, column_padding=4)
-ghost_inky = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/inky.png'), 1, 8, column_padding=4)
-ghost_clyde = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/clyde.png'), 1, 8, column_padding=4)
+pacman = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pacman.png'), 1, 9, column_padding=4)
+ghost_blinky = pyglet.image.ImageGrid(pyglet.image.load('assets/players/blinky.png'), 1, 8, column_padding=4)
+ghost_pinky = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pinky.png'), 1, 8, column_padding=4)
+ghost_inky = pyglet.image.ImageGrid(pyglet.image.load('assets/players/inky.png'), 1, 8, column_padding=4)
+ghost_clyde = pyglet.image.ImageGrid(pyglet.image.load('assets/players/clyde.png'), 1, 8, column_padding=4)
+ghost_eyes = pyglet.image.ImageGrid(pyglet.image.load('assets/players/eyes.png'), 1, 8, column_padding=4)
 wall = pyglet.image.load('assets/wall.png')
 food_small = pyglet.image.load('assets/food_small.png')
 food_large = pyglet.image.load('assets/food_large.png')
 
 
-def getGhost(direction, ghost):
+def getPos(direction):
     if Direction.RIGHT == direction:
         dir_pos = 0
     elif Direction.DOWN == direction:
@@ -22,6 +23,25 @@ def getGhost(direction, ghost):
         dir_pos = 2
     else:
         dir_pos = 3
+    return dir_pos
+
+
+def getScared(ending):
+    ghost = pyglet.image.ImageGrid(pyglet.image.load('assets/players/scared.png'), 1, 4, column_padding=4)
+    amount = 4 if ending else 2
+    return pyglet.image.Animation.from_image_sequence([ghost[img] for img in range(amount)], 0.1, True)
+
+
+def getPacman(direction):
+    dir_pos = getPos(direction)
+    img_cnt = 2
+    img_seq = [pacman[dir_pos * img_cnt + img] for img in range(img_cnt)]
+    img_seq.append(pacman[8])
+    return pyglet.image.Animation.from_image_sequence(img_seq, 0.1, True)
+
+
+def getGhost(direction, ghost):
+    dir_pos = getPos(direction)
     img_cnt = 2
     return pyglet.image.Animation.from_image_sequence([ghost[dir_pos * img_cnt + img] for img in range(img_cnt)], 0.1, True)
 
