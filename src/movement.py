@@ -23,14 +23,15 @@ class AbstractDirection(ABC):
         ct_y = 0 if abs(y - ey) > self.epsilon else 1
         ct_x = 0 if abs(x - ex) > self.epsilon else 1
         result = []
-        if bit_map[y - 1 * ct_y][x] != 1:
-            result.append(Direction.UP)
-        if bit_map[y + 1 * ct_y][x] != 1:
-            result.append(Direction.DOWN)
-        if bit_map[y][x - 1 * ct_x] != 1:
-            result.append(Direction.LEFT)
-        if bit_map[y][x + 1 * ct_x] != 1:
-            result.append(Direction.RIGHT)
+        if 0 <= y < len(bit_map) and 0 <= x < len(bit_map[0]):
+            if bit_map[y - 1 * ct_y][x] != 1:
+                result.append(Direction.UP)
+            if bit_map[y + 1 * ct_y][x] != 1:
+                result.append(Direction.DOWN)
+            if bit_map[y][x - 1 * ct_x] != 1:
+                result.append(Direction.LEFT)
+            if bit_map[y][x + 1 * ct_x] != 1:
+                result.append(Direction.RIGHT)
         return result
 
 
@@ -60,6 +61,7 @@ class Stop(AbstractDirection):
     # y, x
     direction = np.array([0, 0])
     opposite = Direction.STOP
+    current = Direction.STOP
 
     def move(self, sprite, direction, distance):
         return
@@ -70,6 +72,7 @@ class Up(VerticalDirection):
     direction = np.array([-1, 0])
     angle = 90
     opposite = Direction.DOWN
+    current = Direction.UP
 
     def move(self, sprite, directions, dt):
         if Direction.UP in directions:
@@ -88,6 +91,7 @@ class Down(VerticalDirection):
     direction = np.array([1, 0])
     angle = 270
     opposite = Direction.UP
+    current = Direction.DOWN
 
     def move(self, sprite, directions, dt):
         if Direction.DOWN in directions:
@@ -106,6 +110,7 @@ class Left(HorizontalDirection):
     direction = np.array([0, -1])
     angle = 0
     opposite = Direction.RIGHT
+    current = Direction.LEFT
 
     def move(self, sprite, directions, dt):
         if Direction.LEFT in directions:
@@ -124,6 +129,7 @@ class Right(HorizontalDirection):
     direction = np.array([0, 1])
     angle = 180
     opposite = Direction.LEFT
+    current = Direction.RIGHT
 
     def move(self, sprite, directions, dt):
         if Direction.RIGHT in directions:

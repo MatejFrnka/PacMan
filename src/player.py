@@ -90,9 +90,11 @@ class Human(Player):
 class Ghost(Player):
     x_target = 20
     y_target = 0
+    prev_direction = Direction.STOP
 
     def __init__(self, bit_map, sp_texture, pacman, behaviour, x_offset, y_offset):
-        super().__init__(bit_map, sp_texture, x_offset=x_offset, y_offset=y_offset)
+        self.texture = sp_texture
+        super().__init__(bit_map, assets.getGhost(Direction.UP, self.texture), x_offset=x_offset, y_offset=y_offset)
         self.pacman = pacman
         self.targetBehaviour = behaviour
 
@@ -107,7 +109,8 @@ class Ghost(Player):
             dist = self._calcDistFrom(*np.array(self.getPosInMap()) + np.array(movement.getDirection(d).direction))
             if closest is None or closest[0] > dist:
                 closest = (dist, d)
-
+        if closest is None:
+            return Direction.STOP
         return closest[1]
 
     def _makeDecision(self):
@@ -120,6 +123,15 @@ class Ghost(Player):
         self.direction = movement.getDirection(direction)
 
     def update(self, dt):
+        if self.prev_direction != self.direction.current:
+            self.sprite.image = assets.getGhost(self.direction.current, self.texture)
+            self.prev_direction = self.direction.current
         self._makeDecision()
         Player.update(self, dt)
-        self.y_target, self.x_target = self.targetBehaviour.updateTarget(self.pacman)
+        self.y_target, self.x_target = self.targetBehaviour.updateTarget()
+
+    def keypress(self, symbol):
+        ...
+
+    def draw(self):
+        Player.draw(self)

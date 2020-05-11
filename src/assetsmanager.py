@@ -4,10 +4,26 @@ import src.globalsettings as settings
 from enum import Enum
 
 pacman = pyglet.image.load_animation('assets/pacman.gif')
-ghost_red = pyglet.image.load_animation('assets/ghost_tmp.gif')
+ghost_blinky = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/blinky.png'), 1, 8, column_padding=4)
+ghost_pinky = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/pinky.png'), 1, 8, column_padding=4)
+ghost_inky = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/inky.png'), 1, 8, column_padding=4)
+ghost_clyde = pyglet.image.ImageGrid(pyglet.image.load('assets/ghosts/clyde.png'), 1, 8, column_padding=4)
 wall = pyglet.image.load('assets/wall.png')
 food_small = pyglet.image.load('assets/food_small.png')
 food_large = pyglet.image.load('assets/food_large.png')
+
+
+def getGhost(direction, ghost):
+    if Direction.RIGHT == direction:
+        dir_pos = 0
+    elif Direction.DOWN == direction:
+        dir_pos = 1
+    elif Direction.LEFT == direction:
+        dir_pos = 2
+    else:
+        dir_pos = 3
+    img_cnt = 2
+    return pyglet.image.Animation.from_image_sequence([ghost[dir_pos * img_cnt + img] for img in range(img_cnt)], 0.1, True)
 
 
 class Direction(Enum):
@@ -28,7 +44,7 @@ def generateMap():
         [1, 1, 1, 1, 9, 1, 1, 1, 0, 1],
         [0, 0, 0, 1, 9, 1, 0, 0, 0, 0],
         [1, 1, 1, 1, 9, 1, 0, 1, 1, 3],
-        [9, 9, 9, 9, 9, 0, 0, 1, 0, 0],
+        [9, 9, 9, 1, 9, 0, 0, 1, 0, 0],
     ])
     print(topLeft.shape)
     width = topLeft.shape[1] * 2 - 1

@@ -42,11 +42,28 @@ class Map:
         self.batch = pyglet.graphics.Batch()
         self.items = None
         self.human = Human(bit_map, x_offset=self.x_offset, y_offset=self.y_offset)
-        self.players = [Ghost(bit_map, assets.ghost_red,
-                              self.human,
-                              behaviour=TargetBehaviour.PinkyBehaviour(),
-                              x_offset=self.x_offset,
-                              y_offset=self.y_offset)]
+        blinky = Ghost(bit_map, assets.ghost_blinky,
+                       self.human,
+                       behaviour=TargetBehaviour.BlinkyBehaviour(bit_map=bit_map, pacman=self.human),
+                       x_offset=self.x_offset,
+                       y_offset=self.y_offset)
+        pinky = Ghost(bit_map, assets.ghost_pinky,
+                      self.human,
+                      behaviour=TargetBehaviour.PinkyBehaviour(pacman=self.human),
+                      x_offset=self.x_offset,
+                      y_offset=self.y_offset)
+        inky = Ghost(bit_map, assets.ghost_inky,
+                     self.human,
+                     behaviour=TargetBehaviour.InkyBehaviour(bit_map=bit_map, pacman=self.human, blinky=blinky),
+                     x_offset=self.x_offset,
+                     y_offset=self.y_offset)
+        clyde = Ghost(bit_map, assets.ghost_clyde,
+                      self.human,
+                      behaviour=TargetBehaviour.ClydeBehaviour(pacman=self.human, bit_map=bit_map),
+                      x_offset=self.x_offset,
+                      y_offset=self.y_offset)
+
+        self.players = [blinky, pinky, inky, clyde]
         self.score = 0
         self.leftToCollect = 0
         self.createMap(bit_map)
@@ -57,7 +74,10 @@ class Map:
                                             anchor_x='center', anchor_y='bottom')
 
     def update(self, dt):
+        # TODO: REMOVE ONLY FOR DEBUGGING
+        dt = 0.016
         # move human
+
         self.human.update(dt)
         # move ai
         [player.update(dt) for player in self.players]
