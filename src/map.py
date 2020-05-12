@@ -32,7 +32,7 @@ class FoodBlock(Block):
     def collect(self):
         if not self.collected:
             Block.collect(self)
-            self.map.leftToCollect -= 1
+            self.map.food_left -= 1
             self.map.score += 10
 
 
@@ -48,97 +48,96 @@ class SuperFoodBlock(Block):
             self.map.score += 100
             for player in self.map.ghosts:
                 player.scare(self.scareLen)
+                self.map.kill_streak = 0
 
 
 class Map:
-    pacman_alive = True
+    game_move = True
+    game_ended = False
     x_offset = 0
     y_offset = 25
+    ghosts = []
+    pacman = None
+    reset = False
+    batch = None
+    lifes = 3
+    lifes_img = []
+    food_left = 0
+    kill_streak = 0
 
     def __init__(self, bit_map):
-        self.batch = pyglet.graphics.Batch()
+
         self.items = None
-        self.human = Human(bit_map,
-                           x_offset=self.x_offset,
-                           y_offset=self.y_offset,
-                           x=bit_map.shape[1] // 2,
-                           y=bit_map.shape[0] // 2 - 2)
-        blinky = Ghost(bit_map, assets.ghost_blinky,
-                       self.human,
-                       behaviour=targetbehaviour.BlinkyBehaviour(bit_map=bit_map, pacman=self.human),
+        self.bit_map = bit_map
+        self.score = 0
+        self.label_score = pyglet.text.Label('Score: ' + str(self.score),
+                                             font_size=settings.BLOCK_SIZE,
+                                             x=((bit_map.shape[0] + 1) * settings.BLOCK_SIZE + self.x_offset) / 2,
+                                             y=(bit_map.shape[1] * settings.BLOCK_SIZE) + self.y_offset,
+                                             anchor_x='center', anchor_y='bottom')
+        self.label_game_over = pyglet.graphics.Batch()
+        pyglet.text.Label("Game over",
+                          font_size=settings.BLOCK_SIZE * 2,
+                          y=(bit_map.shape[0] // 2) * settings.BLOCK_SIZE + self.y_offset,
+                          x=(bit_map.shape[1] // 2) * settings.BLOCK_SIZE + self.x_offset,
+                          anchor_x='center', anchor_y='bottom', batch=self.label_game_over)
+        pyglet.text.Label("Press enter to restart",
+                          font_size=settings.BLOCK_SIZE,
+                          y=(bit_map.shape[0] // 2) * settings.BLOCK_SIZE + self.y_offset,
+                          x=(bit_map.shape[1] // 2) * settings.BLOCK_SIZE + self.x_offset,
+                          anchor_x='center', anchor_y='top', batch=self.label_game_over)
+
+        self.start()
+
+    def start(self):
+        self.game_ended = False
+        self.game_move = True
+        self.score = 0
+        self.batch = pyglet.graphics.Batch()
+        self.food_left = 0
+        self.lifes = 3
+        self.lifes_img = []
+        for life in range(self.lifes):
+            spr = pyglet.sprite.Sprite(assets.pacman[0], settings.BLOCK_SIZE * (self.bit_map.shape[1] - life - 1))
+            spr.scale = 0.8
+            self.lifes_img.append(spr)
+        self.preparePlayers()
+        self.createMap(self.bit_map)
+
+    def preparePlayers(self):
+        self.game_move = True
+        self.pacman = Human(self.bit_map,
+                            x_offset=self.x_offset,
+                            y_offset=self.y_offset,
+                            x=self.bit_map.shape[1] // 2,
+                            y=self.bit_map.shape[0] // 2 - 2)
+        blinky = Ghost(self.bit_map, assets.ghost_blinky,
+                       self.pacman,
+                       behaviour=targetbehaviour.BlinkyBehaviour(bit_map=self.bit_map, pacman=self.pacman),
                        x_offset=self.x_offset,
                        y_offset=self.y_offset)
         Timer(1, self.release, [blinky]).start()
-        pinky = Ghost(bit_map, assets.ghost_pinky,
-                      self.human,
-                      behaviour=targetbehaviour.PinkyBehaviour(pacman=self.human),
+        pinky = Ghost(self.bit_map, assets.ghost_pinky,
+                      self.pacman,
+                      behaviour=targetbehaviour.PinkyBehaviour(pacman=self.pacman),
                       x_offset=self.x_offset,
                       y_offset=self.y_offset)
         Timer(3, self.release, [pinky]).start()
-        inky = Ghost(bit_map, assets.ghost_inky,
-                     self.human,
-                     behaviour=targetbehaviour.InkyBehaviour(bit_map=bit_map, pacman=self.human, blinky=blinky),
+        inky = Ghost(self.bit_map, assets.ghost_inky,
+                     self.pacman,
+                     behaviour=targetbehaviour.InkyBehaviour(bit_map=self.bit_map, pacman=self.pacman, blinky=blinky),
                      x_offset=self.x_offset,
                      y_offset=self.y_offset)
         Timer(4, self.release, [inky]).start()
-        clyde = Ghost(bit_map, assets.ghost_clyde,
-                      self.human,
+        clyde = Ghost(self.bit_map, assets.ghost_clyde,
+                      self.pacman,
                       behaviour=None,
                       x_offset=self.x_offset,
                       y_offset=self.y_offset)
         Timer(10, self.release, [clyde]).start()
-        clyde.targetBehaviour = targetbehaviour.ClydeBehaviour(pacman=self.human, bit_map=bit_map, clyde=clyde)
-
+        clyde.targetBehaviour = targetbehaviour.ClydeBehaviour(pacman=self.pacman, bit_map=self.bit_map, clyde=clyde)
         self.ghosts = [clyde, inky, pinky, blinky]
-        self.score = 0
-        self.leftToCollect = 0
-        self.createMap(bit_map)
-        self.scoreLabel = pyglet.text.Label('Score: ' + str(self.score),
-                                            font_size=settings.BLOCK_SIZE,
-                                            x=((bit_map.shape[0] + 1) * settings.BLOCK_SIZE + self.x_offset) / 2,
-                                            y=(bit_map.shape[1] * settings.BLOCK_SIZE) + self.y_offset,
-                                            anchor_x='center', anchor_y='bottom')
-        self.setScatter(True)
         Timer(9, self.setScatter, [False]).start()
-
-    def update(self, dt):
-        if self.pacman_alive:
-            # move human
-            self.human.update(dt)
-            # move ai
-            [player.update(dt) for player in self.ghosts]
-
-            # check collisions with food and ai
-            y, x = self.human.getPosInMap()
-            if self.items[y][x].collides(y, x):
-                self.items[y][x].collect()
-            # check if all food is collected
-            if self.leftToCollect == 0:
-                ...  # win
-            for player in self.ghosts:
-                if player.collides(self.human):
-                    if player.scared:
-                        player.die()
-                    elif not player.scared and not player.dead:
-                        self.pacman_alive = False
-                        self.human.die()
-
-        # update score lable
-        self.scoreLabel.text = 'Score: ' + str(self.score)
-
-    def draw(self):
-        # draw walls and food
-        self.batch.draw()
-        # draw human
-        self.human.draw()
-        # draw ai
-        [player.draw() for player in self.ghosts]
-        # draw score
-        self.scoreLabel.draw()
-
-    def keypress(self, symbol):
-        self.human.keypress(symbol)
-        [player.keypress(symbol) for player in self.ghosts]
 
     def createMap(self, bit_map):
 
@@ -168,12 +167,80 @@ class Map:
                 elif bit_map[y][x] == 9:
                     sprite = make_sprite(x, y, assets.food_small)
                     block = FoodBlock(sprite, self)
-                    self.leftToCollect += 1
+                    self.food_left += 1
                 else:
                     block = Block(None)
 
                 items_row.append(block)
             self.items.append(items_row)
+
+    def update(self, dt):
+        if self.reset:
+            if self.lifes == 0:
+                self.start()
+            else:
+                self.preparePlayers()
+            self.reset = False
+
+        def reset():
+            self.reset = True
+
+        if self.game_move:
+            # move human
+            self.pacman.update(dt)
+            # move ai
+            [player.update(dt) for player in self.ghosts]
+
+            # check collisions with food and ai
+            y, x = self.pacman.getPosInMap()
+            if self.items[y][x].collides(y, x):
+                self.items[y][x].collect()
+            # check if all food is collected
+            if self.food_left == 0:
+                self.game_move = False
+                Timer(2, reset).start()
+            for player in self.ghosts:
+                if player.collides(self.pacman):
+                    if player.scared and not player.dead:
+                        player.die()
+                        self.kill_streak += 1
+                        self.score += 200 * self.kill_streak
+                    elif not player.scared and not player.dead:
+                        self.lifes -= 1
+                        self.game_move = False
+                        if self.lifes == 0:
+                            Timer(2, self.endGame)
+                            self.pacman.die()
+                            self.game_ended = True
+                        else:
+                            Timer(1, reset).start()
+
+        # update score lable
+        self.label_score.text = 'Score: ' + str(self.score)
+
+    def endGame(self):
+        self.label_game_over = True
+
+    def draw(self):
+        # draw walls and food
+        self.batch.draw()
+        # draw human
+        self.pacman.draw()
+        # draw ai
+        [player.draw() for player in self.ghosts]
+        # draw score
+        self.label_score.draw()
+        if self.game_ended:
+            self.label_game_over.draw()
+
+        for life in range(self.lifes):
+            self.lifes_img[life].draw()
+
+    def keypress(self, symbol):
+        self.pacman.keypress(symbol)
+        [player.keypress(symbol) for player in self.ghosts]
+        if self.game_ended and symbol == pyglet.window.key.ENTER:
+            self.start()
 
     def release(self, ghost):
         ghost.locked = False

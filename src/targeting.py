@@ -8,7 +8,7 @@ class TargetBehaviour:
         self.def_cord = def_cord
         self.pacman = pacman
 
-    scatterBehaviour = False
+    scatterBehaviour = True
 
     def scatter(self):
         return self.def_cord
