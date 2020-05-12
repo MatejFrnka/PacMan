@@ -1,5 +1,5 @@
 from abc import ABC
-from src.assetsmanager import Direction
+from src.assetsmanager import EnumDirection
 import src.globalsettings as settings
 import numpy as np
 
@@ -13,32 +13,33 @@ class AbstractDirection(ABC):
     def calc_dif(self, variable):
         return (round(variable / settings.BLOCK_SIZE) * settings.BLOCK_SIZE) - variable
 
-    def _isVertical(self, direction):
-        return direction in [Direction.UP, Direction.DOWN]
+    def _isVertical(self, enum_direction):
+        return enum_direction in [EnumDirection.UP, EnumDirection.DOWN]
 
-    def move(self, sprite, direction, dt):
+    def move(self, sprite, enum_direction, dt):
         pass
 
+    # returns enum_directions
     def availableDir(self, y, x, ey, ex, bit_map):
         ct_y = 0 if abs(y - ey) > self.epsilon else 1
         ct_x = 0 if abs(x - ex) > self.epsilon else 1
         result = []
         if 0 <= y < len(bit_map) and 0 <= x < len(bit_map[0]):
             if bit_map[y - 1 * ct_y][x] != 1:
-                result.append(Direction.UP)
+                result.append(EnumDirection.UP)
             if bit_map[y + 1 * ct_y][x] != 1:
-                result.append(Direction.DOWN)
+                result.append(EnumDirection.DOWN)
             if bit_map[y][x - 1 * ct_x] != 1:
-                result.append(Direction.LEFT)
+                result.append(EnumDirection.LEFT)
             if bit_map[y][x + 1 * ct_x] != 1:
-                result.append(Direction.RIGHT)
+                result.append(EnumDirection.RIGHT)
         return result
 
 
 class VerticalDirection(AbstractDirection):
     vertical = True
 
-    def move(self, sprite, direction, dt):
+    def move(self, sprite, enum_direction, dt):
         dif = self.calc_dif(sprite.x)
         if dif > self.epsilon:
             sprite.x += settings.MOVEMENT_SPEED * dt * abs(dif * self.dif_multiplier)
@@ -49,7 +50,7 @@ class VerticalDirection(AbstractDirection):
 class HorizontalDirection(AbstractDirection):
     vertical = False
 
-    def move(self, sprite, direction, dt):
+    def move(self, sprite, enum_direction, dt):
         dif = self.calc_dif(sprite.y)
         if dif > self.epsilon:
             sprite.y += settings.MOVEMENT_SPEED * dt * abs(dif * self.dif_multiplier)
@@ -60,10 +61,10 @@ class HorizontalDirection(AbstractDirection):
 class Stop(AbstractDirection):
     # y, x
     direction = np.array([0, 0])
-    opposite = Direction.STOP
-    current = Direction.STOP
+    opposite = EnumDirection.STOP
+    current = EnumDirection.STOP
 
-    def move(self, sprite, direction, distance):
+    def move(self, sprite, enum_direction, distance):
         return
 
 
@@ -71,13 +72,13 @@ class Up(VerticalDirection):
     # y, x
     direction = np.array([-1, 0])
     angle = 90
-    opposite = Direction.DOWN
-    current = Direction.UP
+    opposite = EnumDirection.DOWN
+    current = EnumDirection.UP
 
-    def move(self, sprite, directions, dt):
-        if Direction.UP in directions:
+    def move(self, sprite, enum_directions, dt):
+        if EnumDirection.UP in enum_directions:
             sprite.y += settings.MOVEMENT_SPEED * dt
-            VerticalDirection.move(self, sprite, directions, dt)
+            VerticalDirection.move(self, sprite, enum_directions, dt)
 
     def availableDir(self, y, x, ey, ex, bit_map):
         result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
@@ -90,13 +91,13 @@ class Down(VerticalDirection):
     # y, x
     direction = np.array([1, 0])
     angle = 270
-    opposite = Direction.UP
-    current = Direction.DOWN
+    opposite = EnumDirection.UP
+    current = EnumDirection.DOWN
 
-    def move(self, sprite, directions, dt):
-        if Direction.DOWN in directions:
+    def move(self, sprite, enum_directions, dt):
+        if EnumDirection.DOWN in enum_directions:
             sprite.y -= settings.MOVEMENT_SPEED * dt
-            VerticalDirection.move(self, sprite, directions, dt)
+            VerticalDirection.move(self, sprite, enum_directions, dt)
 
     def availableDir(self, y, x, ey, ex, bit_map):
         result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
@@ -109,13 +110,13 @@ class Left(HorizontalDirection):
     # y, x
     direction = np.array([0, -1])
     angle = 0
-    opposite = Direction.RIGHT
-    current = Direction.LEFT
+    opposite = EnumDirection.RIGHT
+    current = EnumDirection.LEFT
 
-    def move(self, sprite, directions, dt):
-        if Direction.LEFT in directions:
+    def move(self, sprite, enum_directions, dt):
+        if EnumDirection.LEFT in enum_directions:
             sprite.x -= settings.MOVEMENT_SPEED * dt
-            HorizontalDirection.move(self, sprite, directions, dt)
+            HorizontalDirection.move(self, sprite, enum_directions, dt)
 
     def availableDir(self, y, x, ey, ex, bit_map):
         result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
@@ -128,13 +129,13 @@ class Right(HorizontalDirection):
     # y, x
     direction = np.array([0, 1])
     angle = 180
-    opposite = Direction.LEFT
-    current = Direction.RIGHT
+    opposite = EnumDirection.LEFT
+    current = EnumDirection.RIGHT
 
-    def move(self, sprite, directions, dt):
-        if Direction.RIGHT in directions:
+    def move(self, sprite, enum_directions, dt):
+        if EnumDirection.RIGHT in enum_directions:
             sprite.x += settings.MOVEMENT_SPEED * dt
-            HorizontalDirection.move(self, sprite, directions, dt)
+            HorizontalDirection.move(self, sprite, enum_directions, dt)
 
     def availableDir(self, y, x, ey, ex, bit_map):
         result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
@@ -143,14 +144,14 @@ class Right(HorizontalDirection):
         return result
 
 
-def getDirection(direction):
-    if direction == Direction.UP:
+def getDirection(enum_direction):
+    if enum_direction == EnumDirection.UP:
         return Up()
-    if direction == Direction.STOP:
+    if enum_direction == EnumDirection.STOP:
         return Stop()
-    if direction == Direction.DOWN:
+    if enum_direction == EnumDirection.DOWN:
         return Down()
-    if direction == Direction.LEFT:
+    if enum_direction == EnumDirection.LEFT:
         return Left()
-    if direction == Direction.RIGHT:
+    if enum_direction == EnumDirection.RIGHT:
         return Right()

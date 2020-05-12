@@ -1,5 +1,5 @@
 from pyglet.window import key
-from src.assetsmanager import Direction
+from src.assetsmanager import EnumDirection
 import src.assetsmanager as assets
 import src.globalsettings as settings
 import pyglet
@@ -33,7 +33,7 @@ class Player(ABC):
                                            x=settings.BLOCK_SIZE * start_x + self.x_offset,
                                            y=settings.BLOCK_SIZE * start_y + self.y_offset)
         self.sprite.scale = settings.BLOCK_SIZE / self.sprite.height
-        self.direction = movement.getDirection(Direction.STOP)
+        self.direction = movement.getDirection(EnumDirection.STOP)
 
     def collides(self, playerB):
         pA = np.array(self.getPosInMap(True))
@@ -54,6 +54,7 @@ class Player(ABC):
     def draw(self):
         self.sprite.draw()
 
+    # returns EnumDirection
     def _availableDir(self):
         y, x = self.getPosInMap(False)
         ey, ex = self.getPosInMap(True)
@@ -78,39 +79,38 @@ class Player(ABC):
 
 class Human(Player):
     def __init__(self, bit_map, x, y, x_offset=None, y_offset=None, keyTranslate=None):
-        super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.getPacman(Direction.UP),
+        super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.getPacman(EnumDirection.UP),
                                     start_x=x, start_y=y)
         if keyTranslate is not None:
             self.keyDirTranslate = keyTranslate
-        self.nextDirection = None
-        self.turnAt = None
+        self.enum_next_direction = None
 
     keyDirTranslate = {
-        key.UP: Direction.UP,
-        key.DOWN: Direction.DOWN,
-        key.LEFT: Direction.LEFT,
-        key.RIGHT: Direction.RIGHT,
+        key.UP: EnumDirection.UP,
+        key.DOWN: EnumDirection.DOWN,
+        key.LEFT: EnumDirection.LEFT,
+        key.RIGHT: EnumDirection.RIGHT,
     }
 
     def keypress(self, symbol):
         if symbol not in self.keyDirTranslate:
             return
         a = self._availableDir()
-        self.nextDirection = self.keyDirTranslate[symbol]
+        self.enum_next_direction = self.keyDirTranslate[symbol]
 
     def update(self, dt):
         directions = self._availableDir()
-        if self.nextDirection in directions:
-            self.direction = movement.getDirection(self.nextDirection)
+        if self.enum_next_direction in directions:
+            self.direction = movement.getDirection(self.enum_next_direction)
             self.sprite.image = assets.getPacman(self.direction.current)
-            self.nextDirection = None
+            self.enum_next_direction = None
         Player.update(self, dt)
 
 
 class Ghost(Player):
     x_target = 0
     y_target = 0
-    prev_direction = Direction.STOP
+    prev_direction = EnumDirection.STOP
     scared = False
     warn = False
     locked = True
@@ -119,44 +119,44 @@ class Ghost(Player):
 
     def __init__(self, bit_map, sp_texture, pacman, behaviour, x_offset, y_offset):
         self.texture = sp_texture
-        super().__init__(bit_map, assets.getGhost(Direction.UP, self.texture), x_offset=x_offset, y_offset=y_offset,
+        super().__init__(bit_map, assets.getGhost(EnumDirection.UP, self.texture), x_offset=x_offset, y_offset=y_offset,
                          start_x=bit_map.shape[1] // 2, start_y=bit_map.shape[0] // 2)
         self.pacman = pacman
         self.targetBehaviour = behaviour
 
-    def _getClosestDirection(self, directions):
+    # returns EnumDirection
+    def _getClosestDirection(self, enum_directions):
         closest = None
-        for d in directions:
+        for d in enum_directions:
             dist = distance(np.array(self.getPosInMap()) + np.array(movement.getDirection(d).direction),
                             np.array([self.y_target, self.x_target]))
             if closest is None or closest[0] > dist:
                 closest = (dist, d)
         if closest is None:
-            return Direction.STOP
+            return EnumDirection.STOP
         return closest[1]
 
     def _makeDecision(self):
-        directions = self._availableDir()
-        if len(directions) == 1:
-            self.direction = movement.getDirection(directions[0])
+        enum_directions = self._availableDir()
+        if len(enum_directions) == 1:
+            self.direction = movement.getDirection(enum_directions[0])
         # players are not allowed to turn around
-        if self.direction.opposite in directions:
-            directions.remove(self.direction.opposite)
+        if self.direction.opposite in enum_directions:
+            enum_directions.remove(self.direction.opposite)
         # if locked remove direction up
-        if self.locked and Direction.UP in directions:
-            directions.remove(Direction.UP)
+        if self.locked and EnumDirection.UP in enum_directions:
+            enum_directions.remove(EnumDirection.UP)
         # if not locked but in spawn and can go up, go up
         if not self.locked \
                 and self.getPosInMap() == (self.bit_map.shape[0] // 2, self.bit_map.shape[1] // 2) \
-                and Direction.UP in directions:
-            self.direction = movement.getDirection(Direction.UP)
+                and EnumDirection.UP in enum_directions:
+            self.direction = movement.getDirection(EnumDirection.UP)
         # if scared but not dead move randomly
         elif self.scared and not self.dead:
-            self.direction = movement.getDirection(random.choice(directions))
+            self.direction = movement.getDirection(random.choice(enum_directions))
         # else go to square closest to target
         else:
-            direction = self._getClosestDirection(directions)
-            self.direction = movement.getDirection(direction)
+            self.direction = movement.getDirection(self._getClosestDirection(enum_directions))
 
     def update(self, dt):
         if (self.prev_direction != self.direction.current and not self.scared and not self.warn) \

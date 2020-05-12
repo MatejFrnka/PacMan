@@ -1,3 +1,4 @@
+from enum import Enum
 from threading import Timer
 
 import pyglet
@@ -20,7 +21,6 @@ class Block:
 
     def collides(self, y, x):
         self.collect()
-        # Todo: IMPLEMENT COLLISION SYSTEM
         return True
 
 
@@ -51,14 +51,20 @@ class SuperFoodBlock(Block):
                 self.map.kill_streak = 0
 
 
+class EnumGameState(Enum):
+    PLAY = 0,
+    GAME_OVER = 1,
+    PLAYER_DIED = 2,
+    LEVEL_COMPLETE = 3,
+    RESET = 4,
+    STOP = 5
+
+
 class Map:
-    game_move = True
-    game_ended = False
     x_offset = 0
     y_offset = 25
     ghosts = []
     pacman = None
-    reset = False
     batch = None
     lifes = 3
     lifes_img = []
@@ -66,7 +72,7 @@ class Map:
     kill_streak = 0
 
     def __init__(self, bit_map):
-
+        self.enum_game_state = EnumGameState.PLAY
         self.items = None
         self.bit_map = bit_map
         self.score = 0
@@ -90,12 +96,9 @@ class Map:
         self.start()
 
     def start(self):
-        self.game_ended = False
-        self.game_move = True
-        self.score = 0
+        self.enum_game_state = EnumGameState.PLAY
         self.batch = pyglet.graphics.Batch()
         self.food_left = 0
-        self.lifes = 3
         self.lifes_img = []
         for life in range(self.lifes):
             spr = pyglet.sprite.Sprite(assets.pacman[0], settings.BLOCK_SIZE * (self.bit_map.shape[1] - life - 1))
@@ -105,7 +108,7 @@ class Map:
         self.createMap(self.bit_map)
 
     def preparePlayers(self):
-        self.game_move = True
+        self.enum_game_state = EnumGameState.PLAY
         self.pacman = Human(self.bit_map,
                             x_offset=self.x_offset,
                             y_offset=self.y_offset,
@@ -175,17 +178,20 @@ class Map:
             self.items.append(items_row)
 
     def update(self, dt):
-        if self.reset:
-            if self.lifes == 0:
-                self.start()
-            else:
-                self.preparePlayers()
-            self.reset = False
+        if EnumGameState.RESET == self.enum_game_state:
+            self.score = 0
+            self.lifes = 3
+            self.start()
+        if EnumGameState.PLAYER_DIED == self.enum_game_state:
+            self.preparePlayers()
+        if EnumGameState.LEVEL_COMPLETE == self.enum_game_state:
+            self.start()
+            self.preparePlayers()
 
-        def reset():
-            self.reset = True
+        def set_gameState(val):
+            self.enum_game_state = val
 
-        if self.game_move:
+        if self.enum_game_state == EnumGameState.PLAY:
             # move human
             self.pacman.update(dt)
             # move ai
@@ -197,8 +203,8 @@ class Map:
                 self.items[y][x].collect()
             # check if all food is collected
             if self.food_left == 0:
-                self.game_move = False
-                Timer(2, reset).start()
+                self.enum_game_state = EnumGameState.STOP
+                Timer(2, set_gameState, [EnumGameState.LEVEL_COMPLETE]).start()
             for player in self.ghosts:
                 if player.collides(self.pacman):
                     if player.scared and not player.dead:
@@ -207,13 +213,13 @@ class Map:
                         self.score += 200 * self.kill_streak
                     elif not player.scared and not player.dead:
                         self.lifes -= 1
-                        self.game_move = False
                         if self.lifes == 0:
                             Timer(2, self.endGame)
                             self.pacman.die()
-                            self.game_ended = True
+                            self.enum_game_state = EnumGameState.GAME_OVER
                         else:
-                            Timer(1, reset).start()
+                            self.enum_game_state = EnumGameState.STOP
+                            Timer(1, set_gameState, [EnumGameState.PLAYER_DIED]).start()
 
         # update score lable
         self.label_score.text = 'Score: ' + str(self.score)
@@ -230,7 +236,7 @@ class Map:
         [player.draw() for player in self.ghosts]
         # draw score
         self.label_score.draw()
-        if self.game_ended:
+        if self.enum_game_state == EnumGameState.GAME_OVER:
             self.label_game_over.draw()
 
         for life in range(self.lifes):
@@ -239,8 +245,8 @@ class Map:
     def keypress(self, symbol):
         self.pacman.keypress(symbol)
         [player.keypress(symbol) for player in self.ghosts]
-        if self.game_ended and symbol == pyglet.window.key.ENTER:
-            self.start()
+        if self.enum_game_state == EnumGameState.GAME_OVER and symbol == pyglet.window.key.ENTER:
+            self.enum_game_state = EnumGameState.RESET
 
     def release(self, ghost):
         ghost.locked = False

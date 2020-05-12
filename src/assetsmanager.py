@@ -15,11 +15,11 @@ food_large = pyglet.image.load('assets/food_large.png')
 
 
 def getPos(direction):
-    if Direction.RIGHT == direction:
+    if EnumDirection.RIGHT == direction:
         dir_pos = 0
-    elif Direction.DOWN == direction:
+    elif EnumDirection.DOWN == direction:
         dir_pos = 1
-    elif Direction.LEFT == direction:
+    elif EnumDirection.LEFT == direction:
         dir_pos = 2
     else:
         dir_pos = 3
@@ -46,7 +46,7 @@ def getGhost(direction, ghost):
     return pyglet.image.Animation.from_image_sequence([ghost[dir_pos * img_cnt + img] for img in range(img_cnt)], 0.1, True)
 
 
-class Direction(Enum):
+class EnumDirection(Enum):
     STOP = 0
     UP = 1
     DOWN = -1
