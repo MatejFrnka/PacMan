@@ -19,7 +19,7 @@ class AbstractDirection(ABC):
     def move(self, sprite, enum_direction, dt):
         pass
 
-    # returns enum_directions
+    # returns [enum_directions]
     def availableDir(self, y, x, ey, ex, bit_map):
         ct_y = 0 if abs(y - ey) > self.epsilon else 1
         ct_x = 0 if abs(x - ex) > self.epsilon else 1

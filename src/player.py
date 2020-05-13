@@ -27,9 +27,10 @@ class Player(ABC):
         self.bit_map = bit_map
         self.x_offset = x_offset
         self.y_offset = y_offset
+        y, x = self._translateCordToScreen(start_y, start_x)
         self.sprite = pyglet.sprite.Sprite(sp_texture,
-                                           x=settings.BLOCK_SIZE * start_x + self.x_offset,
-                                           y=settings.BLOCK_SIZE * start_y + self.y_offset)
+                                           x=settings.BLOCK_SIZE * x + self.x_offset,
+                                           y=settings.BLOCK_SIZE * y + self.y_offset)
         self.sprite.scale = settings.BLOCK_SIZE / self.sprite.height
         self.direction = movement.getDirection(EnumDirection.STOP)
 
@@ -56,7 +57,6 @@ class Player(ABC):
     def _availableDir(self):
         y, x = self.getPosInMap(False)
         ey, ex = self.getPosInMap(True)
-
         return self.direction.availableDir(y, x, ey, ex, self.bit_map)
 
     # returns position (y, x), if exact is True it returns float else integer
@@ -108,7 +108,7 @@ class Human(Player):
 
 class Ghost(Player):
 
-    def __init__(self, bit_map, sp_texture, pacman, behaviour, x_offset, y_offset):
+    def __init__(self, bit_map, sp_texture, pacman, behaviour, x_offset=None, y_offset=None):
         self.x_target = 0
         self.y_target = 0
         self.prev_direction = EnumDirection.STOP

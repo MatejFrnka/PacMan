@@ -3,7 +3,12 @@ import src.assetsmanager as assets
 import src.player
 import src.map
 import pyglet
+import src.movement
 import numpy as np
+
+"""
+    Most testing has been done by playing the game and trying unexpected moves in an attempt to break it. 
+"""
 
 
 def map_simple():
@@ -68,9 +73,35 @@ def test_map_SuperFoodBlock():
     assert map.score == 100
 
 
-def test_player_collides():
+def test_player_created():
     player = src.player.Human(map_simple(), 1, 1, 0, 0)
-    print(player.getPosInMap())
+    assert player.getPosInMap() == (1, 1)
+    player = src.player.Human(map_simple(), y=3, x=1)
+    assert player.getPosInMap() == (3, 1)
 
 
-test_player_collides()
+def test_player_collides():
+    player1 = src.player.Human(map_simple(), 1, 1, 0, 0)
+    player2 = src.player.Human(map_simple(), 1, 1, 0, 0)
+    player3 = src.player.Human(map_simple(), 2, 1, 0, 0)
+    assert player1.collides(player2)
+    assert player1.collides(player1)
+    assert player2.collides(player1)
+    assert not player1.collides(player3)
+    assert not player3.collides(player1)
+
+
+def test_movement_left():
+    left = src.movement.Left()
+    assert src.assetsmanager.EnumDirection.RIGHT in left.availableDir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.DOWN in left.availableDir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.LEFT not in left.availableDir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.UP not in left.availableDir(1, 1, 1, 1, map_simple())
+
+    assert src.assetsmanager.EnumDirection.LEFT in left.availableDir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.RIGHT in left.availableDir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.UP not in left.availableDir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.DOWN not in left.availableDir(1, 2, 1, 2, map_simple())
+
+
+test_movement_left()

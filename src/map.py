@@ -102,7 +102,6 @@ class Map:
     starts game
     """
     def start(self):
-        print("start")
         self.batch = pyglet.graphics.Batch()
         self.food_left = 0
         self.lifes_img = []
@@ -117,14 +116,13 @@ class Map:
     reset players resets all players
     """
     def resetPlayers(self):
-        print("prep players")
         self.ghosts = []
         self.enum_game_state = EnumGameState.PLAY
         self.pacman = Human(self.bit_map,
                             x_offset=self.x_offset,
                             y_offset=self.y_offset,
                             x=self.bit_map.shape[1] // 2,
-                            y=self.bit_map.shape[0] // 2 - 2)
+                            y=self.bit_map.shape[0] // 2 + 2)
         blinky = Ghost(self.bit_map, assets.ghost_blinky,
                        self.pacman,
                        behaviour=targetbehaviour.BlinkyBehaviour(bit_map=self.bit_map, pacman=self.pacman),
@@ -157,7 +155,6 @@ class Map:
     reset map resets map and all food on it
     """
     def resetMap(self, bit_map):
-        print("create map")
 
         def make_sprite(x, y, img):
             sprite = pyglet.sprite.Sprite(img,
@@ -172,7 +169,6 @@ class Map:
         for y in range(bit_map.shape[0]):
             items_row = []
             for x in range(bit_map.shape[1]):
-                block = None
                 # WALL
                 if bit_map[y][x] == 1:
                     sprite = make_sprite(x, y, assets.wall)
