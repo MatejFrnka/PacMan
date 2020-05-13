@@ -3,7 +3,6 @@ import pyglet.gl
 from pyglet.window import key
 import src.assetsmanager as assets
 import src.globalsettings as settings
-import src.player as pl
 from src.map import Map
 
 

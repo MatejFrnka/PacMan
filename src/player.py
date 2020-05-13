@@ -1,11 +1,9 @@
-from pyglet.window import key
+import pyglet
 from src.assetsmanager import EnumDirection
 import src.assetsmanager as assets
 import src.globalsettings as settings
-import pyglet
 import src.movement as movement
 from abc import ABC
-import pyglet.image
 import numpy as np
 from threading import Timer
 import random
@@ -16,16 +14,16 @@ def distance(coordinatesA, coordinatesB):
 
 
 class Player(ABC):
-    normal_speed = 1
-    dead = False
-    previous_dead = dead
 
     def __init__(self, bit_map, sp_texture, start_x, start_y, x_offset=None, y_offset=None):
+
+        self.normal_speed = 1
+        self.dead = False
+        self.previous_dead = self.dead
         if x_offset is None:
             x_offset = 0
         if y_offset is None:
             y_offset = 0
-
         self.bit_map = bit_map
         self.x_offset = x_offset
         self.y_offset = y_offset
@@ -78,19 +76,20 @@ class Player(ABC):
 
 
 class Human(Player):
-    def __init__(self, bit_map, x, y, x_offset=None, y_offset=None, keyTranslate=None):
+    def __init__(self, bit_map, x, y, x_offset=None, y_offset=None, key_map=None):
         super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.getPacman(EnumDirection.UP),
                                     start_x=x, start_y=y)
-        if keyTranslate is not None:
-            self.keyDirTranslate = keyTranslate
-        self.enum_next_direction = None
 
-    keyDirTranslate = {
-        key.UP: EnumDirection.UP,
-        key.DOWN: EnumDirection.DOWN,
-        key.LEFT: EnumDirection.LEFT,
-        key.RIGHT: EnumDirection.RIGHT,
-    }
+        self.enum_next_direction = EnumDirection.STOP
+        if key_map is None:
+            self.keyDirTranslate = {
+                pyglet.window.key.UP: EnumDirection.UP,
+                pyglet.window.key.DOWN: EnumDirection.DOWN,
+                pyglet.window.key.LEFT: EnumDirection.LEFT,
+                pyglet.window.key.RIGHT: EnumDirection.RIGHT,
+            }
+        else:
+            self.keyDirTranslate = key_map
 
     def keypress(self, symbol):
         if symbol not in self.keyDirTranslate:
@@ -108,16 +107,17 @@ class Human(Player):
 
 
 class Ghost(Player):
-    x_target = 0
-    y_target = 0
-    prev_direction = EnumDirection.STOP
-    scared = False
-    warn = False
-    locked = True
-    scared_speed = 0.6
-    dead_speed = 1.2
 
     def __init__(self, bit_map, sp_texture, pacman, behaviour, x_offset, y_offset):
+        self.x_target = 0
+        self.y_target = 0
+        self.prev_direction = EnumDirection.STOP
+        self.scared = False
+        self.warn = False
+        self.locked = True
+        self.scared_speed = 0.6
+        self.dead_speed = 1.2
+
         self.texture = sp_texture
         super().__init__(bit_map, assets.getGhost(EnumDirection.UP, self.texture), x_offset=x_offset, y_offset=y_offset,
                          start_x=bit_map.shape[1] // 2, start_y=bit_map.shape[0] // 2)

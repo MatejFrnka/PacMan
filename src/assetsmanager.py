@@ -1,6 +1,5 @@
 import pyglet
 import numpy as np
-import src.globalsettings as settings
 from enum import Enum
 
 pacman = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pacman.png'), 1, 9, column_padding=4)
@@ -61,10 +60,10 @@ def generateMap():
         [1, 9, 9, 9, 9, 9, 9, 9, 9, 9],
         [1, 9, 1, 1, 9, 1, 9, 1, 1, 1],
         [1, 9, 9, 9, 9, 1, 9, 9, 9, 1],
-        [1, 1, 1, 1, 9, 1, 1, 1, 0, 1],
-        [0, 0, 0, 1, 9, 1, 0, 0, 0, 0],
-        [0, 0, 0, 1, 9, 1, 0, 1, 1, 3],
-        [0, 0, 0, 1, 9, 0, 0, 1, 0, 0],
+        [1, 9, 1, 1, 9, 1, 1, 1, 0, 1],
+        [1, 9, 1, 1, 9, 1, 0, 0, 0, 0],
+        [1, 9, 1, 1, 9, 1, 0, 1, 1, 3],
+        [1, 9, 1, 1, 9, 0, 0, 1, 0, 0],
     ])
     width = topLeft.shape[1] * 2 - 1
     # add top border

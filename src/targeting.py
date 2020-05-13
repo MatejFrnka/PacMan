@@ -7,8 +7,7 @@ class TargetBehaviour:
     def __init__(self, def_cord, pacman):
         self.def_cord = def_cord
         self.pacman = pacman
-
-    scatterBehaviour = True
+        self.scatterBehaviour = True
 
     def scatter(self):
         return self.def_cord
@@ -71,6 +70,6 @@ class ClydeBehaviour(TargetBehaviour):
         clyde_pos = np.array(self.clyde.getPosInMap())
         distance = player.distance(pacman_pos, clyde_pos)
 
-        if distance < 4:
+        if distance < 3:
             return TargetBehaviour.scatter(self)
         return self.pacman.getPosInMap()
