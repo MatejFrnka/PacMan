@@ -2,18 +2,18 @@ import pyglet
 import numpy as np
 from enum import Enum
 
-pacman = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pacman.png'), 1, 9, column_padding=4)
-ghost_blinky = pyglet.image.ImageGrid(pyglet.image.load('assets/players/blinky.png'), 1, 8, column_padding=4)
-ghost_pinky = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pinky.png'), 1, 8, column_padding=4)
-ghost_inky = pyglet.image.ImageGrid(pyglet.image.load('assets/players/inky.png'), 1, 8, column_padding=4)
-ghost_clyde = pyglet.image.ImageGrid(pyglet.image.load('assets/players/clyde.png'), 1, 8, column_padding=4)
-ghost_eyes = pyglet.image.ImageGrid(pyglet.image.load('assets/players/eyes.png'), 1, 8, column_padding=4)
-wall = pyglet.image.load('assets/wall.png')
-food_small = pyglet.image.load('assets/food_small.png')
-food_large = pyglet.image.load('assets/food_large.png')
+PACMAN = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pacman.png'), 1, 9, column_padding=4)
+GHOTS_BLINKY = pyglet.image.ImageGrid(pyglet.image.load('assets/players/blinky.png'), 1, 8, column_padding=4)
+GHOST_PINKY = pyglet.image.ImageGrid(pyglet.image.load('assets/players/pinky.png'), 1, 8, column_padding=4)
+GHOST_INKY = pyglet.image.ImageGrid(pyglet.image.load('assets/players/inky.png'), 1, 8, column_padding=4)
+GHOST_CLYDE = pyglet.image.ImageGrid(pyglet.image.load('assets/players/clyde.png'), 1, 8, column_padding=4)
+GHOST_EYES = pyglet.image.ImageGrid(pyglet.image.load('assets/players/eyes.png'), 1, 8, column_padding=4)
+WALL = pyglet.image.load('assets/wall.png')
+FOOD_SMALL = pyglet.image.load('assets/food_small.png')
+FOOD_LARGE = pyglet.image.load('assets/food_large.png')
 
 
-def getPos(direction):
+def get_pos(direction):
     if EnumDirection.RIGHT == direction:
         dir_pos = 0
     elif EnumDirection.DOWN == direction:
@@ -25,22 +25,22 @@ def getPos(direction):
     return dir_pos
 
 
-def getScared(ending):
+def get_scared(ending):
     ghost = pyglet.image.ImageGrid(pyglet.image.load('assets/players/scared.png'), 1, 4, column_padding=4)
     amount = 4 if ending else 2
     return pyglet.image.Animation.from_image_sequence([ghost[img] for img in range(amount)], 0.1, True)
 
 
-def getPacman(direction):
-    dir_pos = getPos(direction)
+def get_pacman(direction):
+    dir_pos = get_pos(direction)
     img_cnt = 2
-    img_seq = [pacman[dir_pos * img_cnt + img] for img in range(img_cnt)]
-    img_seq.append(pacman[8])
+    img_seq = [PACMAN[dir_pos * img_cnt + img] for img in range(img_cnt)]
+    img_seq.append(PACMAN[8])
     return pyglet.image.Animation.from_image_sequence(img_seq, 0.1, True)
 
 
-def getGhost(direction, ghost):
-    dir_pos = getPos(direction)
+def get_ghost(direction, ghost):
+    dir_pos = get_pos(direction)
     img_cnt = 2
     return pyglet.image.Animation.from_image_sequence([ghost[dir_pos * img_cnt + img] for img in range(img_cnt)], 0.1, True)
 
@@ -62,7 +62,7 @@ Value 9 = Food
 """
 
 
-def generateMap():
+def generate_map():
     # top left corner of map
     topLeft = np.array([
         [1, 9, 9, 9, 9, 9, 9, 9, 9, 1],

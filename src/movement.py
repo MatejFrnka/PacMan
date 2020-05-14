@@ -9,10 +9,12 @@ Abstract class that implements default movements
 
 
 class AbstractDirection(ABC):
-    vertical = None
-    epsilon = 0.1
-    dif_multiplier = 0.2
-    angle = 0
+    def __init__(self):
+        self.vertical = None
+        self.epsilon = 0.1
+        self.dif_multiplier = 0.2
+        self.angle = 0
+
     """
     Calculates difference from center of the block to the variable position
     :param variable position to calculate distance from center of block
@@ -26,7 +28,7 @@ class AbstractDirection(ABC):
     :param enum_direction returns if given directino is vertical 
     """
 
-    def _isVertical(self, enum_direction):
+    def _is_vertical(self, enum_direction):
         return enum_direction in [EnumDirection.UP, EnumDirection.DOWN]
 
     """
@@ -47,7 +49,7 @@ class AbstractDirection(ABC):
     :returns array of available directions
     """
 
-    def availableDir(self, y, x, ey, ex, bit_map):
+    def available_dir(self, y, x, ey, ex, bit_map):
         ct_y = 0 if abs(y - ey) > self.epsilon else 1
         ct_x = 0 if abs(x - ex) > self.epsilon else 1
         result = []
@@ -139,10 +141,10 @@ class Up(VerticalDirection):
     :returns array of available directions
     """
 
-    def availableDir(self, y, x, ey, ex, bit_map):
-        result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
+    def available_dir(self, y, x, ey, ex, bit_map):
+        result = AbstractDirection.available_dir(self, y, x, ey, ex, bit_map)
         if ey < y:
-            result = [val for val in result if self._isVertical(val)]
+            result = [val for val in result if self._is_vertical(val)]
         return result
 
 
@@ -172,10 +174,10 @@ class Down(VerticalDirection):
     :returns array of available directions
     """
 
-    def availableDir(self, y, x, ey, ex, bit_map):
-        result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
+    def available_dir(self, y, x, ey, ex, bit_map):
+        result = AbstractDirection.available_dir(self, y, x, ey, ex, bit_map)
         if ey > y:
-            result = [val for val in result if self._isVertical(val)]
+            result = [val for val in result if self._is_vertical(val)]
         return result
 
 
@@ -191,10 +193,12 @@ class Left(HorizontalDirection):
     :param enum_direction Direction to move in
     :param dt move multiplier
     """
+
     def move(self, sprite, enum_directions, dt):
         if EnumDirection.LEFT in enum_directions:
             sprite.x -= settings.MOVEMENT_SPEED * dt
             HorizontalDirection.move(self, sprite, enum_directions, dt)
+
     """
     :param y Y position in bit_map
     :param x X position in bit_map
@@ -202,10 +206,11 @@ class Left(HorizontalDirection):
     :param ex Exact x position
     :returns array of available directions
     """
-    def availableDir(self, y, x, ey, ex, bit_map):
-        result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
+
+    def available_dir(self, y, x, ey, ex, bit_map):
+        result = AbstractDirection.available_dir(self, y, x, ey, ex, bit_map)
         if ex < x:
-            result = [val for val in result if not self._isVertical(val)]
+            result = [val for val in result if not self._is_vertical(val)]
         return result
 
 
@@ -221,10 +226,12 @@ class Right(HorizontalDirection):
     :param enum_direction Direction to move in
     :param dt move multiplier
     """
+
     def move(self, sprite, enum_directions, dt):
         if EnumDirection.RIGHT in enum_directions:
             sprite.x += settings.MOVEMENT_SPEED * dt
             HorizontalDirection.move(self, sprite, enum_directions, dt)
+
     """
     :param y Y position in bit_map
     :param x X position in bit_map
@@ -232,17 +239,21 @@ class Right(HorizontalDirection):
     :param ex Exact x position
     :returns array of available directions
     """
-    def availableDir(self, y, x, ey, ex, bit_map):
-        result = AbstractDirection.availableDir(self, y, x, ey, ex, bit_map)
+
+    def available_dir(self, y, x, ey, ex, bit_map):
+        result = AbstractDirection.available_dir(self, y, x, ey, ex, bit_map)
         if ex > x:
-            result = [val for val in result if not self._isVertical(val)]
+            result = [val for val in result if not self._is_vertical(val)]
         return result
+
 
 """
 Direction factory, creates direction from EnumDirection
 :param enum_direction EnumDirecetion of direction to get
 """
-def getDirection(enum_direction):
+
+
+def get_direction(enum_direction):
     if enum_direction == EnumDirection.UP:
         return Up()
     if enum_direction == EnumDirection.STOP:

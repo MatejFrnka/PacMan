@@ -20,7 +20,7 @@ def map_simple():
 
 
 def test_assets_bit_map():
-    bit_map = assets.generateMap()
+    bit_map = assets.generate_map()
     for y in range(len(bit_map)):
         for x in range(len(bit_map[y])):
             if y == 0 or y == bit_map.shape[0] - 1 or x == 0 or x == bit_map.shape[1]:
@@ -28,18 +28,18 @@ def test_assets_bit_map():
 
 
 def test_map_scatter():
-    test_map = src.map.Map(assets.generateMap())
+    test_map = src.map.Map(assets.generate_map())
     ghost1 = test_map.ghosts[0]
-    test_map.setScatter(True)
+    test_map.set_scatter(True)
     assert ghost1.targetBehaviour.scatterBehaviour
-    test_map.setScatter(False)
+    test_map.set_scatter(False)
     assert not ghost1.targetBehaviour.scatterBehaviour
-    test_map.setScatter(True)
+    test_map.set_scatter(True)
     assert ghost1.targetBehaviour.scatterBehaviour
 
 
 def test_map_release():
-    test_map = src.map.Map(assets.generateMap())
+    test_map = src.map.Map(assets.generate_map())
     ghost1 = test_map.ghosts[0]
     assert ghost1.locked
     test_map.release(ghost1)
@@ -47,15 +47,15 @@ def test_map_release():
 
 
 def test_map_Block():
-    block = src.map.Block(assets.wall)
+    block = src.map.Block(assets.WALL)
     assert not block.collected
     block.collect()
     assert block.collected
 
 
 def test_map_FoodBlock():
-    map = src.map.Map(assets.generateMap())
-    block = src.map.FoodBlock(assets.wall, map)
+    map = src.map.Map(assets.generate_map())
+    block = src.map.FoodBlock(assets.WALL, map)
     assert not block.collected
     assert map.score == 0
     block.collect()
@@ -64,8 +64,8 @@ def test_map_FoodBlock():
 
 
 def test_map_SuperFoodBlock():
-    map = src.map.Map(assets.generateMap())
-    block = src.map.SuperFoodBlock(assets.wall, map, 10)
+    map = src.map.Map(assets.generate_map())
+    block = src.map.SuperFoodBlock(assets.WALL, map, 10)
     assert not block.collected
     assert map.score == 0
     block.collect()
@@ -75,9 +75,9 @@ def test_map_SuperFoodBlock():
 
 def test_player_created():
     player = src.player.Human(map_simple(), 1, 1, 0, 0)
-    assert player.getPosInMap() == (1, 1)
+    assert player.get_pos_in_map() == (1, 1)
     player = src.player.Human(map_simple(), y=3, x=1)
-    assert player.getPosInMap() == (3, 1)
+    assert player.get_pos_in_map() == (3, 1)
 
 
 def test_player_collides():
@@ -93,15 +93,15 @@ def test_player_collides():
 
 def test_movement_left():
     left = src.movement.Left()
-    assert src.assetsmanager.EnumDirection.RIGHT in left.availableDir(1, 1, 1, 1, map_simple())
-    assert src.assetsmanager.EnumDirection.DOWN in left.availableDir(1, 1, 1, 1, map_simple())
-    assert src.assetsmanager.EnumDirection.LEFT not in left.availableDir(1, 1, 1, 1, map_simple())
-    assert src.assetsmanager.EnumDirection.UP not in left.availableDir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.RIGHT in left.available_dir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.DOWN in left.available_dir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.LEFT not in left.available_dir(1, 1, 1, 1, map_simple())
+    assert src.assetsmanager.EnumDirection.UP not in left.available_dir(1, 1, 1, 1, map_simple())
 
-    assert src.assetsmanager.EnumDirection.LEFT in left.availableDir(1, 2, 1, 2, map_simple())
-    assert src.assetsmanager.EnumDirection.RIGHT in left.availableDir(1, 2, 1, 2, map_simple())
-    assert src.assetsmanager.EnumDirection.UP not in left.availableDir(1, 2, 1, 2, map_simple())
-    assert src.assetsmanager.EnumDirection.DOWN not in left.availableDir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.LEFT in left.available_dir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.RIGHT in left.available_dir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.UP not in left.available_dir(1, 2, 1, 2, map_simple())
+    assert src.assetsmanager.EnumDirection.DOWN not in left.available_dir(1, 2, 1, 2, map_simple())
 
 
 test_movement_left()

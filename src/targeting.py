@@ -26,7 +26,7 @@ class TargetBehaviour:
     """
     :returns Coordinates (y, x) depending on mode
     """
-    def updateTarget(self):
+    def update_target(self):
         if self.scatterBehaviour:
             return self.scatter()
         return self.hunt()
@@ -44,7 +44,7 @@ class BlinkyBehaviour(TargetBehaviour):
     :returns Coordinates (y, x) to go to in hunt mode
     """
     def hunt(self):
-        return self.pacman.getPosInMap()
+        return self.pacman.get_pos_in_map()
 
 
 class PinkyBehaviour(TargetBehaviour):
@@ -58,7 +58,7 @@ class PinkyBehaviour(TargetBehaviour):
     :returns Coordinates (y, x) to go to in hunt mode
     """
     def hunt(self):
-        pacman_pos = np.array(self.pacman.getPosInMap())
+        pacman_pos = np.array(self.pacman.get_pos_in_map())
         pacman_direction = np.array(self.pacman.direction.direction)
         result = pacman_pos + pacman_direction * 2
         return result
@@ -78,11 +78,11 @@ class InkyBehaviour(TargetBehaviour):
     :returns Coordinates (y, x) to go to in hunt mode
     """
     def hunt(self):
-        pacman_pos = np.array(self.pacman.getPosInMap())
+        pacman_pos = np.array(self.pacman.get_pos_in_map())
         pacman_direction = np.array(self.pacman.direction.direction)
         anchor_point = pacman_pos + pacman_direction
 
-        blinky_pos = np.array(self.blinky.getPosInMap())
+        blinky_pos = np.array(self.blinky.get_pos_in_map())
         distance = anchor_point - blinky_pos
         result = anchor_point + distance
         return result
@@ -102,10 +102,10 @@ class ClydeBehaviour(TargetBehaviour):
     :returns Coordinates (y, x) to go to in hunt mode
     """
     def hunt(self):
-        pacman_pos = np.array(self.pacman.getPosInMap())
-        clyde_pos = np.array(self.clyde.getPosInMap())
+        pacman_pos = np.array(self.pacman.get_pos_in_map())
+        clyde_pos = np.array(self.clyde.get_pos_in_map())
         distance = player.distance(pacman_pos, clyde_pos)
 
         if distance < 3:
             return TargetBehaviour.scatter(self)
-        return self.pacman.getPosInMap()
+        return self.pacman.get_pos_in_map()

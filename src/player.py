@@ -41,21 +41,21 @@ class Player(ABC):
         self.bit_map = bit_map
         self.x_offset = x_offset
         self.y_offset = y_offset
-        y, x = self._translateCordToScreen(start_y, start_x)
+        y, x = self._translate_cord_to_screen(start_y, start_x)
         self.sprite = pyglet.sprite.Sprite(sp_texture,
                                            x=settings.BLOCK_SIZE * x + self.x_offset,
                                            y=settings.BLOCK_SIZE * y + self.y_offset)
         self.sprite.scale = settings.BLOCK_SIZE / self.sprite.height
-        self.direction = movement.getDirection(EnumDirection.STOP)
+        self.direction = movement.get_direction(EnumDirection.STOP)
 
     """
     Check collision with another player
     """
 
     def collides(self, playerB):
-        pA = np.array(self.getPosInMap(True))
-        pB = np.array(playerB.getPosInMap(True))
-        dist = distance(np.array(self.getPosInMap(True)), np.array(playerB.getPosInMap(True)))
+        pA = np.array(self.get_pos_in_map(True))
+        pB = np.array(playerB.get_pos_in_map(True))
+        dist = distance(np.array(self.get_pos_in_map(True)), np.array(playerB.get_pos_in_map(True)))
         return dist < 0.7
 
     """
@@ -66,7 +66,7 @@ class Player(ABC):
         self.dead = True
 
     def update(self, dt):
-        self.direction.move(self.sprite, self._availableDir(), dt * self.normal_speed)
+        self.direction.move(self.sprite, self._available_dir(), dt * self.normal_speed)
 
     def keypress(self, symbol):
         pass
@@ -75,24 +75,24 @@ class Player(ABC):
         self.sprite.draw()
 
     # returns EnumDirection
-    def _availableDir(self):
-        y, x = self.getPosInMap(False)
-        ey, ex = self.getPosInMap(True)
-        return self.direction.availableDir(y, x, ey, ex, self.bit_map)
+    def _available_dir(self):
+        y, x = self.get_pos_in_map(False)
+        ey, ex = self.get_pos_in_map(True)
+        return self.direction.available_dir(y, x, ey, ex, self.bit_map)
 
     # returns position (y, x), if exact is True it returns float else integer
-    def getPosInMap(self, exact=None):
+    def get_pos_in_map(self, exact=None):
         if exact is None:
             exact = False
 
-        res = self._translateCordToScreen((self.sprite.y - self.y_offset) / settings.BLOCK_SIZE,
-                                          (self.sprite.x - self.x_offset) / settings.BLOCK_SIZE)
+        res = self._translate_cord_to_screen((self.sprite.y - self.y_offset) / settings.BLOCK_SIZE,
+                                             (self.sprite.x - self.x_offset) / settings.BLOCK_SIZE)
         if not exact:
             res = (round(res[0]), round(res[1]))
         return res
 
     # takes y, x index of bit_map and returns its position on screen
-    def _translateCordToScreen(self, y, x):
+    def _translate_cord_to_screen(self, y, x):
         return self.bit_map.shape[0] - y - 1, x
 
 
@@ -103,7 +103,7 @@ Human controlled player
 
 class Human(Player):
     def __init__(self, bit_map, x, y, x_offset=None, y_offset=None, key_map=None):
-        super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.getPacman(EnumDirection.UP),
+        super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.get_pacman(EnumDirection.UP),
                                     start_x=x, start_y=y)
 
         self.enum_next_direction = EnumDirection.STOP
@@ -120,17 +120,16 @@ class Human(Player):
     def keypress(self, symbol):
         if symbol not in self.keyDirTranslate:
             return
-        a = self._availableDir()
+        a = self._available_dir()
         self.enum_next_direction = self.keyDirTranslate[symbol]
 
     def update(self, dt):
-        directions = self._availableDir()
+        directions = self._available_dir()
         if self.enum_next_direction in directions:
-            self.direction = movement.getDirection(self.enum_next_direction)
-            self.sprite.image = assets.getPacman(self.direction.current)
+            self.direction = movement.get_direction(self.enum_next_direction)
+            self.sprite.image = assets.get_pacman(self.direction.current)
             self.enum_next_direction = None
         Player.update(self, dt)
-
 
 
 """
@@ -151,16 +150,17 @@ class Ghost(Player):
         self.dead_speed = 1.2
 
         self.texture = sp_texture
-        super().__init__(bit_map, assets.getGhost(EnumDirection.UP, self.texture), x_offset=x_offset, y_offset=y_offset,
+        super().__init__(bit_map, assets.get_ghost(EnumDirection.UP, self.texture), x_offset=x_offset, y_offset=y_offset,
                          start_x=bit_map.shape[1] // 2, start_y=bit_map.shape[0] // 2)
         self.pacman = pacman
         self.targetBehaviour = behaviour
+        self.scare_timer = None
 
     # returns EnumDirection
-    def _getClosestDirection(self, enum_directions):
+    def _get_closest_direction(self, enum_directions):
         closest = None
         for d in enum_directions:
-            dist = distance(np.array(self.getPosInMap()) + np.array(movement.getDirection(d).direction),
+            dist = distance(np.array(self.get_pos_in_map()) + np.array(movement.get_direction(d).direction),
                             np.array([self.y_target, self.x_target]))
             if closest is None or closest[0] > dist:
                 closest = (dist, d)
@@ -168,10 +168,10 @@ class Ghost(Player):
             return EnumDirection.STOP
         return closest[1]
 
-    def _makeDecision(self):
-        enum_directions = self._availableDir()
+    def _make_decision(self):
+        enum_directions = self._available_dir()
         if len(enum_directions) == 1:
-            self.direction = movement.getDirection(enum_directions[0])
+            self.direction = movement.get_direction(enum_directions[0])
         # players are not allowed to turn around
         if self.direction.opposite in enum_directions:
             enum_directions.remove(self.direction.opposite)
@@ -180,28 +180,28 @@ class Ghost(Player):
             enum_directions.remove(EnumDirection.UP)
         # if not locked but in spawn and can go up, go up
         if not self.locked \
-                and self.getPosInMap() == (self.bit_map.shape[0] // 2, self.bit_map.shape[1] // 2) \
+                and self.get_pos_in_map() == (self.bit_map.shape[0] // 2, self.bit_map.shape[1] // 2) \
                 and EnumDirection.UP in enum_directions:
-            self.direction = movement.getDirection(EnumDirection.UP)
+            self.direction = movement.get_direction(EnumDirection.UP)
         # if scared but not dead move randomly
         elif self.scared and not self.dead:
-            self.direction = movement.getDirection(random.choice(enum_directions))
+            self.direction = movement.get_direction(random.choice(enum_directions))
         # else go to square closest to target
         else:
-            self.direction = movement.getDirection(self._getClosestDirection(enum_directions))
+            self.direction = movement.get_direction(self._get_closest_direction(enum_directions))
 
     def update(self, dt):
         if (self.prev_direction != self.direction.current and not self.scared and not self.warn) \
                 or (not self.scared and self.warn) \
                 or self.dead:
-            texture = assets.ghost_eyes if self.dead else self.texture
-            self.sprite.image = assets.getGhost(self.direction.current, texture)
+            texture = assets.GHOST_EYES if self.dead else self.texture
+            self.sprite.image = assets.get_ghost(self.direction.current, texture)
             self.prev_direction = self.direction.current
             self.warn = False
         if self.warn and self.scared:
             self.warn = False
-            self.sprite.image = assets.getScared(True)
-        self._makeDecision()
+            self.sprite.image = assets.get_scared(True)
+        self._make_decision()
         multiplier = 1
         if self.dead:
             multiplier = self.dead_speed
@@ -212,11 +212,11 @@ class Ghost(Player):
 
             self.y_target = self.bit_map.shape[0] // 2
             self.x_target = self.bit_map.shape[1] // 2
-            tmp = self.getPosInMap()
-            if self.getPosInMap() == (self.y_target, self.x_target):
+            tmp = self.get_pos_in_map()
+            if self.get_pos_in_map() == (self.y_target, self.x_target):
                 self.respawn()
         if not self.dead:
-            self.y_target, self.x_target = self.targetBehaviour.updateTarget()
+            self.y_target, self.x_target = self.targetBehaviour.update_target()
 
     def keypress(self, symbol):
         pass
@@ -227,8 +227,8 @@ class Ghost(Player):
     def respawn(self):
         self.dead = False
         self.scared = False
-        self.direction = movement.getDirection(self.direction.opposite)
-        self.sprite.image = assets.getGhost(self.direction.current, self.texture)
+        self.direction = movement.get_direction(self.direction.opposite)
+        self.sprite.image = assets.get_ghost(self.direction.current, self.texture)
 
     # time - time to be scared. min time is 1.5 seconds
     def scare(self, time):
@@ -237,17 +237,17 @@ class Ghost(Player):
 
         def warn():
             self.warn = True
-            Timer(1.5, unscare).start()
+            self.scare_timer = Timer(1.5, unscare)
+            self.scare_timer.start()
 
         def unscare():
             self.scared = False
             self.warn = True
-            self.current_speed = self.normal_speed
 
         self.scared = True
-        self.sprite.image = assets.getScared(False)
-        self.direction = movement.getDirection(self.direction.opposite)
-        self.current_speed = self.scared_speed
-
-        t = Timer(time - 1.5, warn)
-        t.start()
+        self.sprite.image = assets.get_scared(False)
+        self.direction = movement.get_direction(self.direction.opposite)
+        if self.scare_timer is not None:
+            self.scare_timer.cancel()
+        self.scare_timer = Timer(time - 1.5, warn)
+        self.scare_timer.start()

@@ -8,7 +8,7 @@ from src.map import Map
 
 class AppEngine(pyglet.window.Window):
     def __init__(self):
-        bit_map = assets.generateMap()
+        bit_map = assets.generate_map()
         super().__init__(bit_map.shape[1] * settings.BLOCK_SIZE, bit_map.shape[0] * settings.BLOCK_SIZE + settings.BLOCK_SIZE * 3, "PAC-MAN", resizable=False)
         self.map = Map(bit_map)
         self.event_loop = pyglet.app.EventLoop()

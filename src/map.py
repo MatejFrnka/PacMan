@@ -106,16 +106,16 @@ class Map:
         self.food_left = 0
         self.lifes_img = []
         for life in range(self.lifes):
-            spr = pyglet.sprite.Sprite(assets.pacman[0], settings.BLOCK_SIZE * (self.bit_map.shape[1] - life - 1))
+            spr = pyglet.sprite.Sprite(assets.PACMAN[0], settings.BLOCK_SIZE * (self.bit_map.shape[1] - life - 1))
             spr.scale = 0.8
             self.lifes_img.append(spr)
-        self.resetPlayers()
-        self.resetMap(self.bit_map)
+        self.reset_players()
+        self.reset_map(self.bit_map)
         self.enum_game_state = EnumGameState.PLAY
     """
     reset players resets all players
     """
-    def resetPlayers(self):
+    def reset_players(self):
         self.ghosts = []
         self.enum_game_state = EnumGameState.PLAY
         self.pacman = Human(self.bit_map,
@@ -123,25 +123,25 @@ class Map:
                             y_offset=self.y_offset,
                             x=self.bit_map.shape[1] // 2,
                             y=self.bit_map.shape[0] // 2 + 2)
-        blinky = Ghost(self.bit_map, assets.ghost_blinky,
+        blinky = Ghost(self.bit_map, assets.GHOTS_BLINKY,
                        self.pacman,
                        behaviour=targetbehaviour.BlinkyBehaviour(bit_map=self.bit_map, pacman=self.pacman),
                        x_offset=self.x_offset,
                        y_offset=self.y_offset)
         Timer(1, self.release, [blinky]).start()
-        pinky = Ghost(self.bit_map, assets.ghost_pinky,
+        pinky = Ghost(self.bit_map, assets.GHOST_PINKY,
                       self.pacman,
                       behaviour=targetbehaviour.PinkyBehaviour(pacman=self.pacman),
                       x_offset=self.x_offset,
                       y_offset=self.y_offset)
         Timer(3, self.release, [pinky]).start()
-        inky = Ghost(self.bit_map, assets.ghost_inky,
+        inky = Ghost(self.bit_map, assets.GHOST_INKY,
                      self.pacman,
                      behaviour=targetbehaviour.InkyBehaviour(bit_map=self.bit_map, pacman=self.pacman, blinky=blinky),
                      x_offset=self.x_offset,
                      y_offset=self.y_offset)
         Timer(4, self.release, [inky]).start()
-        clyde = Ghost(self.bit_map, assets.ghost_clyde,
+        clyde = Ghost(self.bit_map, assets.GHOST_CLYDE,
                       self.pacman,
                       behaviour=None,
                       x_offset=self.x_offset,
@@ -150,11 +150,11 @@ class Map:
         Timer(10, self.release, [clyde]).start()
         self.ghosts = [clyde, inky, pinky, blinky]
         # self.ghosts = [clyde]
-        Timer(7, self.setScatter, [False]).start()
+        Timer(7, self.set_scatter, [False]).start()
     """
     reset map resets map and all food on it
     """
-    def resetMap(self, bit_map):
+    def reset_map(self, bit_map):
 
         def make_sprite(x, y, img):
             sprite = pyglet.sprite.Sprite(img,
@@ -171,15 +171,15 @@ class Map:
             for x in range(bit_map.shape[1]):
                 # WALL
                 if bit_map[y][x] == 1:
-                    sprite = make_sprite(x, y, assets.wall)
+                    sprite = make_sprite(x, y, assets.WALL)
                     block = Block(sprite)
                 # SUPER FOOD
                 elif bit_map[y][x] == 2:
-                    sprite = make_sprite(x, y, assets.food_large)
+                    sprite = make_sprite(x, y, assets.FOOD_LARGE)
                     block = SuperFoodBlock(sprite, self, 5)
                 # FOOD
                 elif bit_map[y][x] == 9:
-                    sprite = make_sprite(x, y, assets.food_small)
+                    sprite = make_sprite(x, y, assets.FOOD_SMALL)
                     block = FoodBlock(sprite, self)
                     self.food_left += 1
                 else:
@@ -196,12 +196,12 @@ class Map:
             self.score = 0
             self.lifes = 3
             self.start()
-            self.resetPlayers()
+            self.reset_players()
         if EnumGameState.PLAYER_DIED == self.enum_game_state:
-            self.resetPlayers()
+            self.reset_players()
         if EnumGameState.LEVEL_COMPLETE == self.enum_game_state:
             self.start()
-            self.resetPlayers()
+            self.reset_players()
 
         def set_gameState(val):
             self.enum_game_state = val
@@ -213,7 +213,7 @@ class Map:
             [player.update(dt) for player in self.ghosts]
 
             # check collisions with food and ai
-            y, x = self.pacman.getPosInMap()
+            y, x = self.pacman.get_pos_in_map()
             if self.items[y][x].collides():
                 self.items[y][x].collect()
             # check if all food is collected
@@ -229,7 +229,7 @@ class Map:
                     elif not player.scared and not player.dead:
                         self.lifes -= 1
                         if self.lifes == 0:
-                            Timer(2, self.endGame)
+                            Timer(2, self.end_game)
                             self.pacman.die()
                             self.enum_game_state = EnumGameState.GAME_OVER
                         else:
@@ -241,7 +241,7 @@ class Map:
     """
     Sets game to ended
     """
-    def endGame(self):
+    def end_game(self):
         self.label_game_over = True
 
     """
@@ -281,6 +281,6 @@ class Map:
     Sets scatter value to all ghosts
     takes value True or False
     """
-    def setScatter(self, value):
+    def set_scatter(self, value):
         for ghost in self.ghosts:
             ghost.targetBehaviour.scatterBehaviour = value
