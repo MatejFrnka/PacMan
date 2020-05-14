@@ -9,11 +9,25 @@ from threading import Timer
 import random
 
 
+# calculates distance between two points (y, x)
 def distance(coordinatesA, coordinatesB):
     return pow(float(np.sum(np.power(coordinatesA - coordinatesB, 2))), 0.5)
 
 
+"""
+Abstract class, implements basic player movement
+"""
+
+
 class Player(ABC):
+    """
+    :param bit_map 2d np.array of map. See more info in assetsmanager.py
+    :param sp_texture Texture to use for player
+    :param start_x start x position
+    :param start_y start y position
+    :param x_offset X offset of map
+    :param y_offset Y offset of map
+    """
 
     def __init__(self, bit_map, sp_texture, start_x, start_y, x_offset=None, y_offset=None):
 
@@ -34,16 +48,23 @@ class Player(ABC):
         self.sprite.scale = settings.BLOCK_SIZE / self.sprite.height
         self.direction = movement.getDirection(EnumDirection.STOP)
 
+    """
+    Check collision with another player
+    """
+
     def collides(self, playerB):
         pA = np.array(self.getPosInMap(True))
         pB = np.array(playerB.getPosInMap(True))
         dist = distance(np.array(self.getPosInMap(True)), np.array(playerB.getPosInMap(True)))
         return dist < 0.7
 
+    """
+    Kills player
+    """
+
     def die(self):
         self.dead = True
 
-    # coordinates are np.array in format y, x
     def update(self, dt):
         self.direction.move(self.sprite, self._availableDir(), dt * self.normal_speed)
 
@@ -75,6 +96,11 @@ class Player(ABC):
         return self.bit_map.shape[0] - y - 1, x
 
 
+"""
+Human controlled player
+"""
+
+
 class Human(Player):
     def __init__(self, bit_map, x, y, x_offset=None, y_offset=None, key_map=None):
         super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.getPacman(EnumDirection.UP),
@@ -104,6 +130,12 @@ class Human(Player):
             self.sprite.image = assets.getPacman(self.direction.current)
             self.enum_next_direction = None
         Player.update(self, dt)
+
+
+
+"""
+Player controlled by GhostBehaviour class
+"""
 
 
 class Ghost(Player):

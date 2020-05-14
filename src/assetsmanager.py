@@ -53,7 +53,17 @@ class EnumDirection(Enum):
     RIGHT = 2
 
 
+"""
+Creates a map. Type of 2d np.array
+Value 0 = Empty space
+Value 1 = Wall
+Value 2 = Super food
+Value 9 = Food
+"""
+
+
 def generateMap():
+    # top left corner of map
     topLeft = np.array([
         [1, 9, 9, 9, 9, 9, 9, 9, 9, 1],
         [1, 2, 1, 1, 9, 1, 1, 1, 9, 1],
