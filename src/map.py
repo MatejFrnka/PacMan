@@ -18,10 +18,11 @@ class Block:
             if self.sprite is not None:
                 self.sprite.opacity = 0
             self.collected = True
-    """
-    call on colision with block
-    """
+
     def collides(self):
+        """
+        call on colision with block
+        """
         self.collect()
         return True
 
@@ -98,9 +99,6 @@ class Map:
 
         self.start()
 
-    """
-    starts game
-    """
     def start(self):
         self.batch = pyglet.graphics.Batch()
         self.food_left = 0
@@ -112,10 +110,11 @@ class Map:
         self.reset_players()
         self.reset_map(self.bit_map)
         self.enum_game_state = EnumGameState.PLAY
-    """
-    reset players resets all players
-    """
+
     def reset_players(self):
+        """
+        reset players resets all players
+        """
         self.ghosts = []
         self.enum_game_state = EnumGameState.PLAY
         self.pacman = Human(self.bit_map,
@@ -151,10 +150,11 @@ class Map:
         self.ghosts = [clyde, inky, pinky, blinky]
         # self.ghosts = [clyde]
         Timer(7, self.set_scatter, [False]).start()
-    """
-    reset map resets map and all food on it
-    """
+
     def reset_map(self, bit_map):
+        """
+        reset map resets map and all food on it
+        """
 
         def make_sprite(x, y, img):
             sprite = pyglet.sprite.Sprite(img,
@@ -187,11 +187,12 @@ class Map:
 
                 items_row.append(block)
             self.items.append(items_row)
-    """
-    call on window update
-    :arg dt is time elapsed since last update
-    """
+
     def update(self, dt):
+        """
+        call on window update
+        :param dt is time elapsed since last update
+        """
         if EnumGameState.RESET == self.enum_game_state:
             self.score = 0
             self.lifes = 3
@@ -238,16 +239,17 @@ class Map:
 
         # update score lable
         self.label_score.text = 'Score: ' + str(self.score)
-    """
-    Sets game to ended
-    """
+
     def end_game(self):
+        """
+        Sets game to ended
+        """
         self.label_game_over = True
 
-    """
-    Call on window.draw
-    """
     def draw(self):
+        """
+        Call on window.draw
+        """
         # draw walls and food
         self.batch.draw()
         # draw human
@@ -261,26 +263,28 @@ class Map:
 
         for life in range(self.lifes):
             self.lifes_img[life].draw()
-    """
-    call on keypress
-    :arg symbol pyglet.window.key
-    """
+
     def keypress(self, symbol):
+        """
+        call on keypress
+        :param symbol pyglet.window.key
+        """
         self.pacman.keypress(symbol)
         [player.keypress(symbol) for player in self.ghosts]
         if self.enum_game_state == EnumGameState.GAME_OVER and symbol == pyglet.window.key.ENTER:
             self.enum_game_state = EnumGameState.RESET
-    """
-    releases ghost
-    Takes reference to ghost
-    """
+
     def release(self, ghost):
+        """
+        releases ghost
+        :param ghost reference to ghost
+        """
         ghost.locked = False
 
-    """
-    Sets scatter value to all ghosts
-    takes value True or False
-    """
     def set_scatter(self, value):
+        """
+        Sets scatter value to all ghosts
+        :param value True or False
+        """
         for ghost in self.ghosts:
             ghost.targetBehaviour.scatterBehaviour = value

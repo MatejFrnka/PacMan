@@ -14,13 +14,9 @@ def distance(coordinatesA, coordinatesB):
     return pow(float(np.sum(np.power(coordinatesA - coordinatesB, 2))), 0.5)
 
 
-"""
-Abstract class, implements basic player movement
-"""
-
-
 class Player(ABC):
     """
+    Abstract class, implements basic player movement
     :param bit_map 2d np.array of map. See more info in assetsmanager.py
     :param sp_texture Texture to use for player
     :param start_x start x position
@@ -48,21 +44,19 @@ class Player(ABC):
         self.sprite.scale = settings.BLOCK_SIZE / self.sprite.height
         self.direction = movement.get_direction(EnumDirection.STOP)
 
-    """
-    Check collision with another player
-    """
-
     def collides(self, playerB):
+        """
+        Check collision with another player
+        """
         pA = np.array(self.get_pos_in_map(True))
         pB = np.array(playerB.get_pos_in_map(True))
         dist = distance(np.array(self.get_pos_in_map(True)), np.array(playerB.get_pos_in_map(True)))
         return dist < 0.7
 
-    """
-    Kills player
-    """
-
     def die(self):
+        """
+        Kills player
+        """
         self.dead = True
 
     def update(self, dt):
@@ -96,12 +90,11 @@ class Player(ABC):
         return self.bit_map.shape[0] - y - 1, x
 
 
-"""
-Human controlled player
-"""
-
-
 class Human(Player):
+    """
+    Human controlled player
+    """
+
     def __init__(self, bit_map, x, y, x_offset=None, y_offset=None, key_map=None):
         super(Human, self).__init__(bit_map, x_offset=x_offset, y_offset=y_offset, sp_texture=assets.get_pacman(EnumDirection.UP),
                                     start_x=x, start_y=y)
@@ -132,12 +125,10 @@ class Human(Player):
         Player.update(self, dt)
 
 
-"""
-Player controlled by GhostBehaviour class
-"""
-
-
 class Ghost(Player):
+    """
+    Player controlled by GhostBehaviour class
+    """
 
     def __init__(self, bit_map, sp_texture, pacman, behaviour, x_offset=None, y_offset=None):
         self.x_target = 0
