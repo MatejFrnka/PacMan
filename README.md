@@ -2,7 +2,7 @@
 
 Hra se spouští zavoláním souboru python.py: `python python.py`
 
-Běží na verzy pythonu je 3.7.4
+Běží na verzy pythonu 3.7.4
 
 Potřebné packages:
 * `numpy`
